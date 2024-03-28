@@ -110,45 +110,66 @@ class CMessageCoder:
         Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
         Expanded = []                           # List store expanded nodes
         ExpandedKeys = []                       # List store expanded nodes' value
+        aCostCount = 0
         
+        def DFSRecursive(aNode):
+            if (aNode not in Expanded) and (aNode.GetValue() not in ExpandedKeys):
+                
+                
+                LeftChild = aNode.mLeftChild
+                RightChild = aNode.mRightChild
+                
+                if LeftChild and LeftChild not in Expanded:
+                    DFSRecursive(aNode.mLeftChild)
+                    
+                if RightChild and RightChild not in Expanded:
+                    DFSRecursive(aNode.mRightChild)
+                    
+                Expanded.append(aNode)
+                ExpandedKeys.append(aNode.GetValue())
+                
         while Fringe:
-            pass
-            
-            
+            CurrentNode = Fringe.pop(0)
+            DFSRecursive(CurrentNode)
+        
+        
+        print(ExpandedKeys)
+                
     def BFS(self):
         Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
         Expanded = []                           # List store expanded nodes
         ExpandedKeys = []                       # List store expanded nodes' value
+        PathCost = 0
         
         while Fringe:
             # Pop first node from fringe
             CurrentNode = Fringe.pop(0)
-            LeftChild = CurrentNode.mLeftChild
-            RightChild = CurrentNode.mRightChild
             
-            # Main Decoding go here
-            
-            
-            #---------------------
-            
-            # Add child nodes
-            
-            if RightChild and RightChild not in Expanded:
-                Fringe.append(RightChild)
+            if (CurrentNode not in Expanded) and (CurrentNode.GetValue() not in ExpandedKeys):
+                LeftChild = CurrentNode.mLeftChild
+                RightChild = CurrentNode.mRightChild
                 
-            if LeftChild and LeftChild not in Expanded:
-                Fringe.append(LeftChild)
+                # Main Decoding go here
                 
-            # Add current node to expanded
-            Expanded.append(CurrentNode)
-            ExpandedKeys.append(CurrentNode.GetValue())
+                
+                #---------------------
+                
+                # Add child nodes
+                if LeftChild and LeftChild not in Expanded:
+                    Fringe.append(LeftChild)
+                
+                if RightChild and RightChild not in Expanded:
+                    Fringe.append(RightChild)
+                    
+                # Add current node to expanded
+                Expanded.append(CurrentNode)
+                ExpandedKeys.append(CurrentNode.GetValue())
+                PathCost += 1
         
         print(ExpandedKeys)
                     
-        
-        
     def UCS(self):
-        pass
+        self.BFS()
         
     def IDS(self,aLimit):
         pass
@@ -163,4 +184,7 @@ m.GenerateSwapCombo('ABCDE')
 m.CreateTree()
 m.GetInputMsg('spain.txt')
 m.DecodeMessages("AE")
+m.DFS()
 m.BFS()
+m.UCS()
+
