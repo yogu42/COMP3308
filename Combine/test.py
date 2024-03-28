@@ -5,7 +5,7 @@ Created on Sat Mar 23 20:17:51 2024
 @author: Thomas
 """
 
-C = "ABCDKL"
+C = "ABCDE"
 
 s = []
 swap ={}
@@ -33,7 +33,7 @@ for key,val in swap.items():
 if t == s:
     print(True)
 
-
+keys = swap.keys()
 # Generate combinations and construct graph
 
         

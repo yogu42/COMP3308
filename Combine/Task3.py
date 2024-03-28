@@ -22,7 +22,7 @@ def task3(message_filename, dictionary_filename, threshold):
     clean_string = contents.translate(trans_table)
 
     word = clean_string.split()
-    print(dictionary)
+    print(clean_string)
     
     count = 0
     for w in word:
