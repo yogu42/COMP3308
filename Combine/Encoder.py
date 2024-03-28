@@ -17,11 +17,24 @@ class CMessageCoder:
         self.mInputMsg = None
         self.mFinalOutputMsg = ""
         self.mPossibleMsg = []
+        self.mDict = []
 
         self.mSwaps =[]
         self.mTree = CTree()
-        self.mSearchParams = CSearchToolParams()
-    
+        
+        # Algorithm flags
+        self.mFlagDFS = "d"
+        self.mFlagBFS = "b"
+        self.mFlagUCS = "u"
+        self.mFlagIDS = "i"
+        
+        # Some constants
+        self.mLimit = 1000
+        self.mYesLimit = 10
+        # messages
+        self.mNoSolution = "No solution found.\n\n"
+        self.mFinalKey = ""
+       
     def GetInputMsg(self,aFilename):
         try:
             with open(aFilename, 'r') as file:
@@ -76,18 +89,6 @@ class CMessageCoder:
         else:
             raise TypeError("No input message")
     
-    def DFS(self):
-        pass
-    
-    def BFS(self):
-        pass
-    
-    def UCS(self):
-        pass
-    
-    def IDS(self,aLimit):
-        pass
-        
     def GenerateSwapCombo(self,aLetters):
         # Generate all swap patterns
         for i in range(len(aLetters)-1):
@@ -103,13 +104,64 @@ class CMessageCoder:
     
     def CreateTree(self):
         self.mTree.GenerateStructure()
+        
+    
+    def DFS(self):
+        Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
+        Expanded = []                           # List store expanded nodes
+        ExpandedKeys = []                       # List store expanded nodes' value
+        
+        while Fringe:
+            pass
+            
+            
+    def BFS(self):
+        Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
+        Expanded = []                           # List store expanded nodes
+        ExpandedKeys = []                       # List store expanded nodes' value
+        
+        while Fringe:
+            # Pop first node from fringe
+            CurrentNode = Fringe.pop(0)
+            LeftChild = CurrentNode.mLeftChild
+            RightChild = CurrentNode.mRightChild
+            
+            # Main Decoding go here
+            
+            
+            #---------------------
+            
+            # Add child nodes
+            
+            if RightChild and RightChild not in Expanded:
+                Fringe.append(RightChild)
+                
+            if LeftChild and LeftChild not in Expanded:
+                Fringe.append(LeftChild)
+                
+            # Add current node to expanded
+            Expanded.append(CurrentNode)
+            ExpandedKeys.append(CurrentNode.GetValue())
+        
+        print(ExpandedKeys)
+                    
+        
+        
+    def UCS(self):
+        pass
+        
+    def IDS(self,aLimit):
+        pass
     
     def BlindSearch(self,aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
         pass
-                
+    
+    
 
 m = CMessageCoder()
-m.GenerateSwapCombo('ABCDEFG')
+m.GenerateSwapCombo('ABCDE')
 m.CreateTree()
 m.GetInputMsg('spain.txt')
 m.DecodeMessages("AE")
+#m.BFS()
+c = m.DFS()
