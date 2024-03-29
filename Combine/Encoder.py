@@ -251,7 +251,12 @@ class CMessageCoder:
         while Fringe:
             # Pop first node from fringe
             CurrentNode = Fringe.pop(0)
+            
+            # Get Current Depth
             self.mSearchParams.GetDepth(self.CountDepth(CurrentNode))
+            
+            # Get Current Fring Size
+            
             if (CurrentNode not in Expanded) and (CurrentNode.GetValue() not in ExpandedKeys):
                 LeftChild = CurrentNode.mLeftChild
                 RightChild = CurrentNode.mRightChild
@@ -283,7 +288,61 @@ class CMessageCoder:
         print(ExpandedKeys)
         
     def UCS(self):
-        self.BFS()
+        Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
+        Expanded = []                           # List store expanded nodes
+        ExpandedKeys = []                       # List store expanded nodes' value
+        
+        while Fringe:
+            # Pop first node from fringe
+            CurrentNode = Fringe.pop(0)
+            self.mSearchParams.GetDepth(self.CountDepth(CurrentNode))
+            if (CurrentNode not in Expanded) and (CurrentNode.GetValue() not in ExpandedKeys):
+                LeftChild = CurrentNode.mLeftChild
+                RightChild = CurrentNode.mRightChild
+                
+                # Main Decoding go here
+                Key = CurrentNode.GetValue()
+                NewMsg = self.DecodeMessages(Key)
+                
+                # If message is successfully decode. Validify the message
+                # if NewMsg:
+                #     IsMsgDecoded = self.ValidateDecodedMsgs()
+                    
+                #     if IsMsgDecoded:
+                #         break
+                #     else:
+                #         continue
+                #---------------------
+                
+                # Add child nodes
+                if LeftChild and RightChild:
+                    LeftCost = LeftChild.mCost
+                    RightCost = RightChild.mCost
+                    
+                    # if Cost is the same, go left
+                    
+                    if (LeftCost < RightCost):
+                        if RightChild and RightChild not in Expanded:
+                            Fringe.append(RightChild)
+                        
+                        if LeftChild and LeftChild not in Expanded:
+                            Fringe.append(LeftChild)
+                    else:
+                        if LeftChild and LeftChild not in Expanded:
+                            Fringe.append(LeftChild)
+                    
+                        if RightChild and RightChild not in Expanded:
+                            Fringe.append(RightChild)
+                elif LeftChild:
+                    Fringe.append(LeftChild)
+                    
+                elif RightChild:
+                    Fringe.append(RightChild)
+                    # Add current node to expanded
+                Expanded.append(CurrentNode)
+                ExpandedKeys.append(CurrentNode.GetValue())
+                
+        print(ExpandedKeys)
         
     def IDS(self,aLimit = 999):
         Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
@@ -312,10 +371,18 @@ class CMessageCoder:
             # Pop first node from fringe
             CurrentNode = Fringe.pop(0)
             ExpandedKeys.append(CurrentNode.GetValue())
-
-            DFSLimit(CurrentNode, aLimit)
+            Key = CurrentNode.GetValue()
+            NewMsg = self.DecodeMessages(Key)
             
-        print(ExpandedKeys)
+            # If message is successfully decode. Validify the message
+            if NewMsg:
+                IsMsgDecoded = self.ValidateDecodedMsgs()
+                if IsMsgDecoded:
+                    break
+                else:
+                    continue
+            
+            DFSLimit(CurrentNode, aLimit)
 
 
     def BlindSearch(self,aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
@@ -325,7 +392,7 @@ m = CMessageCoder()
 m.GenerateSwapCombo("ABCDE")
 m.CreateTree()
 
-m.IDS()
+m.UCS()
 
 
 
