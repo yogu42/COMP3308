@@ -114,8 +114,6 @@ class CMessageCoder:
         
         def DFSRecursive(aNode):
             if (aNode not in Expanded) and (aNode.GetValue() not in ExpandedKeys):
-                
-                
                 LeftChild = aNode.mLeftChild
                 RightChild = aNode.mRightChild
                 
@@ -130,6 +128,11 @@ class CMessageCoder:
                 
         while Fringe:
             CurrentNode = Fringe.pop(0)
+            # Main Decoding go here
+            
+            
+            #---------------------
+            
             DFSRecursive(CurrentNode)
         
         
@@ -172,6 +175,7 @@ class CMessageCoder:
         self.BFS()
         
     def IDS(self,aLimit):
+        
         pass
     
     def BlindSearch(self,aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
@@ -186,5 +190,3 @@ m.GetInputMsg('spain.txt')
 m.DecodeMessages("AE")
 m.DFS()
 m.BFS()
-m.UCS()
-
