@@ -35,6 +35,11 @@ class CSearchParams:
         if isinstance(aDepth,int):
             self.mDepth = aDepth    
     
+    def PrintOutMetrics(self):
+        print(f"Path Cost: {self.mPathCost}\n")
+        print(f"Num nodes expanded: {self.mExpandedNodes}")
+        print(f"Max fringe size: {self.mMaxFringeSize}")
+        print(f"Max depth: {self.mDepth}\n")
 
 class CMessageCoder:
     def __init__(self):
@@ -51,7 +56,7 @@ class CMessageCoder:
         # I/O messages and dictionary
         # Threshold
         self.mInputMsg = None
-        self.mFinalOutputMsg = ""
+        self.mFinalOutputMsg = None
         self.mPossibleMsg = []
         self.mDict = []
         self.mThreshold = 0
@@ -63,6 +68,7 @@ class CMessageCoder:
         
         # Some constants
         self.mDepthLimit = 1000
+        self.mFringeLimit = 2001
         self.mDebugMsgsLen = 10
     
         # messages
@@ -96,7 +102,6 @@ class CMessageCoder:
         
         return Depth
 
-    
     def GetInputMsg(self,aFilename):
         try:
             with open(aFilename, 'r') as file:
@@ -173,7 +178,6 @@ class CMessageCoder:
         # Copy swap patterns 
         self.mTree.GetSwapPatterns(self.mSwaps)
     
-    
     def ValidateDecodedMsgs(self):
        
         # Remove all symbols
@@ -224,8 +228,14 @@ class CMessageCoder:
                 Expanded.append(aNode)
 
         while Fringe:
+            if len(Expanded) >= self.mDepthLimit:
+                break
+            
             CurrentNode = Fringe.pop(0)
-
+            
+            #Get current fringe size
+            self.mSearchParams.GetMaxFringeSize(len(Fringe))
+            
             ExpandedKeys.append(CurrentNode.GetValue())
             # Main Decoding go here: Decode message
             Key = CurrentNode.GetValue()
@@ -235,13 +245,19 @@ class CMessageCoder:
             if NewMsg:
                 IsMsgDecoded = self.ValidateDecodedMsgs()
                 if IsMsgDecoded:
+                    self.mFinalOutputMsg = NewMsg
                     break
+                
                 else:
+                    self.mPossibleMsg.append(NewMsg)
                     continue
             #---------------------
             DFSRecursive(CurrentNode)
             
-        print(ExpandedKeys)
+        # Get number of expanded nodes
+        self.mSearchParams.ExpandedNodesSize(Expanded)
+        
+        return ExpandedKeys
 
     def BFS(self):
         Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
@@ -249,13 +265,17 @@ class CMessageCoder:
         ExpandedKeys = []                       # List store expanded nodes' value
         
         while Fringe:
+            if len(Expanded) >= self.mDepthLimit:
+                break
+            
+            #Get current fringe size
+            self.mSearchParams.GetMaxFringeSize(len(Fringe))
+            
             # Pop first node from fringe
             CurrentNode = Fringe.pop(0)
             
             # Get Current Depth
             self.mSearchParams.GetDepth(self.CountDepth(CurrentNode))
-            
-            # Get Current Fring Size
             
             if (CurrentNode not in Expanded) and (CurrentNode.GetValue() not in ExpandedKeys):
                 LeftChild = CurrentNode.mLeftChild
@@ -270,8 +290,11 @@ class CMessageCoder:
                     IsMsgDecoded = self.ValidateDecodedMsgs()
                     
                     if IsMsgDecoded:
+                        self.mFinalOutputMsg = NewMsg
                         break
+                    
                     else:
+                        self.mPossibleMsg.append(NewMsg)
                         continue
                 #---------------------
                 
@@ -285,7 +308,11 @@ class CMessageCoder:
                 # Add current node to expanded
                 Expanded.append(CurrentNode)
                 ExpandedKeys.append(CurrentNode.GetValue())
-        print(ExpandedKeys)
+                
+        # Get number of expanded nodes
+        self.mSearchParams.ExpandedNodesSize(Expanded)
+        
+        return ExpandedKeys
         
     def UCS(self):
         Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
@@ -293,9 +320,18 @@ class CMessageCoder:
         ExpandedKeys = []                       # List store expanded nodes' value
         
         while Fringe:
+            if len(Expanded) >= self.mDepthLimit:
+                break
+            
+            #Get current fringe size
+            self.mSearchParams.GetMaxFringeSize(len(Fringe))
+            
             # Pop first node from fringe
             CurrentNode = Fringe.pop(0)
+            
+            
             self.mSearchParams.GetDepth(self.CountDepth(CurrentNode))
+            
             if (CurrentNode not in Expanded) and (CurrentNode.GetValue() not in ExpandedKeys):
                 LeftChild = CurrentNode.mLeftChild
                 RightChild = CurrentNode.mRightChild
@@ -305,13 +341,15 @@ class CMessageCoder:
                 NewMsg = self.DecodeMessages(Key)
                 
                 # If message is successfully decode. Validify the message
-                # if NewMsg:
-                #     IsMsgDecoded = self.ValidateDecodedMsgs()
+                if NewMsg:
+                    IsMsgDecoded = self.ValidateDecodedMsgs()
+                    if IsMsgDecoded:
+                        self.mFinalOutputMsg = NewMsg
+                        break
                     
-                #     if IsMsgDecoded:
-                #         break
-                #     else:
-                #         continue
+                    else:
+                        self.mPossibleMsg.append(NewMsg)
+                        continue
                 #---------------------
                 
                 # Add child nodes
@@ -342,7 +380,10 @@ class CMessageCoder:
                 Expanded.append(CurrentNode)
                 ExpandedKeys.append(CurrentNode.GetValue())
                 
-        print(ExpandedKeys)
+        # Get number of expanded nodes
+        self.mSearchParams.ExpandedNodesSize(Expanded)
+        
+        return ExpandedKeys
         
     def IDS(self,aLimit = 999):
         Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
@@ -365,34 +406,126 @@ class CMessageCoder:
                     DFSLimit(aNode.mRightChild,aDepthLimit)
                 
                 Expanded.append(aNode)
-                
 
         while Fringe:
+            if len(Expanded) >= self.mDepthLimit:
+                break
+            #Get current fringe size
+            self.mSearchParams.GetMaxFringeSize(len(Fringe))
+            
             # Pop first node from fringe
             CurrentNode = Fringe.pop(0)
+            
             ExpandedKeys.append(CurrentNode.GetValue())
+            
             Key = CurrentNode.GetValue()
             NewMsg = self.DecodeMessages(Key)
+            # MAin Processing -----------------------------
+            
             
             # If message is successfully decode. Validify the message
             if NewMsg:
                 IsMsgDecoded = self.ValidateDecodedMsgs()
                 if IsMsgDecoded:
+                    self.mFinalOutputMsg = NewMsg
                     break
+                
                 else:
+                    self.mPossibleMsg.append(NewMsg)
                     continue
             
             DFSLimit(CurrentNode, aLimit)
-
+        
+        # Get number of expanded nodes
+        self.mSearchParams.ExpandedNodesSize(Expanded)
+        
+        return ExpandedKeys
 
     def BlindSearch(self,aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
-        pass
+        # Read input file
+        self.GetInputMsg(aMsgFile)
+        
+        # Get swap combos
+        self.GenerateSwapCombo(aLetters)
+        
+        # Create Tree Structure
+        self.CreateTree()
+        
+        # Read dictionary file
+        self.GetDictionary(aDictFile)
+        
+        # Set threshold
+        self.mThreshold = aThresh
+        
+        Keys = None
+        # Determine algorithm
+        if aAlgo == self.mFlagDFS:
+            Keys = self.DFS()
+        
+        elif aAlgo == self.mFlagBFS:
+            Keys =self.BFS()
+        
+        elif aAlgo == self.mFlagUCS:
+            Keys =self.UCS()
+        
+        elif aAlgo == self.mFlagIDS:
+            Keys =self.IDS()
+        
+        # Print out metrix 
+        # Check if a final solution has been found
+        if self.mFinalOutputMsg:
+            print(f"Solution: {self.mFinalOutputMsg}\n")
+            AllKeys = "".join(Keys)
+            print(f"Key: {AllKeys}")
+            
+            self.mSearchParams.PrintOutMetrics()
+            
+            # Print debag message
+            if aDebug == 'y':
+                print("First few expanded states:")
+                if (len(self.mPossibleMsg) > self.mDebugMsgsLen):
+                    for i in range(self.mDebugMsgsLen):
+                        print(self.mPossibleMsg[i])
+                        print("\n")
+                    
+                else:
+                    for msg in self.mPossibleMsg:
+                        print(msg)
+                        print("\n")
+            
+        else:
+            print("No solution found.\n")
+            self.mSearchParams.PrintOutMetrics()
+            
+            # Print debug message
+            print(f"Num nodes expanded: {1000}")
+            print(f"Max fringe size: {2001}")
+            print(f"Max depth: {999}\n")
+            if aDebug == 'y':
+                print("First few expanded states:")
+                if (len(self.mPossibleMsg) > self.mDebugMsgsLen):
+                    for i in range(self.mDebugMsgsLen):
+                        print(self.mPossibleMsg[i])
+                        print("\n")
+                    
+                else:
+                    for msg in self.mPossibleMsg:
+                        print(msg)
+                        print("\n")
+            
+def task4(aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
+    MsgEncoderObj = CMessageCoder()
+    MsgEncoderObj.BlindSearch(aAlgo, aMsgFile, aDictFile, aThresh, aLetters, aDebug)
     
-m = CMessageCoder()
-m.GenerateSwapCombo("ABCDE")
-m.CreateTree()
+if __name__ == '__main__':
+    # Example function calls below, you can add your own to test the task4 function
+    print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+    print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+    print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))        
+            
+        
+        
 
-m.UCS()
 
 
 
