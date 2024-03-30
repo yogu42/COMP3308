@@ -21,7 +21,7 @@ def task2(filename, letters):
     swaps = [] 
     for swap in swaps2:
       # Ensure each letter pair is in alphabetical order
-      print(combine_in_order(swap[0], swap[1]))
+      
       swaps.append(combine_in_order(swap[0], swap[1]))
     
     # Sort the swaps alphabetically
@@ -77,8 +77,8 @@ def task2(filename, letters):
 
 if __name__ == '__main__':
     # Example function calls below, you can add your own to test the task2 function
-    print(task2('spain.txt', 'ABE'))
-    print(task2('ai.txt', 'XZ'))
+    #print(task2('spain.txt', 'ABE'))
+    #print(task2('ai.txt', 'XZ'))
     print(task2('cabs.txt', 'ABZD'))
     
  

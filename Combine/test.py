@@ -5,7 +5,7 @@ Created on Sat Mar 23 20:17:51 2024
 @author: Thomas
 """
 
-C = "ABCDE"
+C = "ABZD"
 
 s = []
 swap ={}

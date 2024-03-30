@@ -166,28 +166,30 @@ class CMessageCoder:
             return False
     
     def GenerateSwapCombo(self,aLetters):
+        Letters = list(aLetters)
+        Letters.sort()
         # Generate all swap patterns
-        for i in range(len(aLetters)-1):
-            newBranch = {aLetters[i]:[]}
+        for i in range(len(Letters)-1):
+            newBranch = {Letters[i]:[]}
             
-            for j in range(i+1,len(aLetters)):
-                newBranch[aLetters[i]].append(aLetters[j])
+            for j in range(i+1,len(Letters)):
+                newBranch[Letters[i]].append(Letters[j])
             
             self.mSwaps.append(newBranch)
         
         # Copy swap patterns 
         self.mTree.GetSwapPatterns(self.mSwaps)
     
-    def ValidateDecodedMsgs(self):
+    def ValidateDecodedMsgs(self, aMsg):
        
         # Remove all symbols
         Symbols = string.punctuation
         
         # Create a translation table. Third argument is the string of symbols to remove.
-        TransTab = self.mInputMsg.maketrans('', '', Symbols)
+        TransTab =  aMsg.maketrans('', '', Symbols)
         
         # Remove all symbols from input message
-        CleanMsg = self.mInputMsg.translate(TransTab)
+        CleanMsg =  aMsg.translate(TransTab)
         
         # Turn the input message into a lists of words
         MsgsWordsList = CleanMsg.split()
@@ -200,6 +202,7 @@ class CMessageCoder:
                     ValidWordCount += 1
         
         Percentage = round(ValidWordCount/len(CleanMsg), 4) * 100
+        print(Percentage)
         IsMsgValid = True if Percentage >= self.mThreshold else False
         
         return IsMsgValid
@@ -243,7 +246,7 @@ class CMessageCoder:
             
             # If message is successfully decode. Validify the message
             if NewMsg:
-                IsMsgDecoded = self.ValidateDecodedMsgs()
+                IsMsgDecoded = self.ValidateDecodedMsgs(NewMsg)
                 if IsMsgDecoded:
                     self.mFinalOutputMsg = NewMsg
                     break
@@ -284,11 +287,12 @@ class CMessageCoder:
                 # Main Decoding go here
                 Key = CurrentNode.GetValue()
                 NewMsg = self.DecodeMessages(Key)
+
                 
-                # If message is successfully decode. Validify the message
+                #If message is successfully decode. Validify the message
                 if NewMsg:
-                    IsMsgDecoded = self.ValidateDecodedMsgs()
-                    
+                    IsMsgDecoded = self.ValidateDecodedMsgs(NewMsg)
+
                     if IsMsgDecoded:
                         self.mFinalOutputMsg = NewMsg
                         break
@@ -342,7 +346,7 @@ class CMessageCoder:
                 
                 # If message is successfully decode. Validify the message
                 if NewMsg:
-                    IsMsgDecoded = self.ValidateDecodedMsgs()
+                    IsMsgDecoded = self.ValidateDecodedMsgs(NewMsg)
                     if IsMsgDecoded:
                         self.mFinalOutputMsg = NewMsg
                         break
@@ -425,7 +429,7 @@ class CMessageCoder:
             
             # If message is successfully decode. Validify the message
             if NewMsg:
-                IsMsgDecoded = self.ValidateDecodedMsgs()
+                IsMsgDecoded = self.ValidateDecodedMsgs(NewMsg)
                 if IsMsgDecoded:
                     self.mFinalOutputMsg = NewMsg
                     break
@@ -474,58 +478,34 @@ class CMessageCoder:
         # Print out metrix 
         # Check if a final solution has been found
         if self.mFinalOutputMsg:
-            print(f"Solution: {self.mFinalOutputMsg}\n")
-            AllKeys = "".join(Keys)
-            print(f"Key: {AllKeys}")
-            
-            self.mSearchParams.PrintOutMetrics()
-            
-            # Print debag message
-            if aDebug == 'y':
-                print("First few expanded states:")
-                if (len(self.mPossibleMsg) > self.mDebugMsgsLen):
-                    for i in range(self.mDebugMsgsLen):
-                        print(self.mPossibleMsg[i])
-                        print("\n")
-                    
-                else:
-                    for msg in self.mPossibleMsg:
-                        print(msg)
-                        print("\n")
-            
+            print(self.mFinalOutputMsg)
+        
         else:
-            print("No solution found.\n")
-            self.mSearchParams.PrintOutMetrics()
-            
-            # Print debug message
-            print(f"Num nodes expanded: {1000}")
-            print(f"Max fringe size: {2001}")
-            print(f"Max depth: {999}\n")
-            if aDebug == 'y':
-                print("First few expanded states:")
-                if (len(self.mPossibleMsg) > self.mDebugMsgsLen):
-                    for i in range(self.mDebugMsgsLen):
-                        print(self.mPossibleMsg[i])
-                        print("\n")
-                    
-                else:
-                    for msg in self.mPossibleMsg:
-                        print(msg)
-                        print("\n")
+            print(self.mPossibleMsg)
+           
             
 def task4(aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
     MsgEncoderObj = CMessageCoder()
+    print(MsgEncoderObj.mSwaps)
     MsgEncoderObj.BlindSearch(aAlgo, aMsgFile, aDictFile, aThresh, aLetters, aDebug)
+    return MsgEncoderObj
     
-if __name__ == '__main__':
-    # Example function calls below, you can add your own to test the task4 function
-    print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
-    print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
-    print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))        
+# if __name__ == '__main__':
+#     # Example function calls below, you can add your own to test the task4 function
+#     print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+#     print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+#     print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))        
             
-        
-        
 
+
+m = CMessageCoder()
+m.GenerateSwapCombo("ABCDEFG")
+m.CreateTree()
+m.GetInputMsg("fruit_ode.txt")
+m.GetDictionary("dict_fruit.txt")
+m.mThreshold = 100.0
+BFS = m.BFS()
+print(m.mPossibleMsg)
 
 
 
