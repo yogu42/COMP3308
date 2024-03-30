@@ -194,6 +194,7 @@ class CMessageCoder:
         # Turn the input message into a lists of words
         MsgsWordsList = CleanMsg.split()
         
+        
         # Check percentage of word
         ValidWordCount = 0
         for MsgWord in MsgsWordsList:
@@ -202,7 +203,7 @@ class CMessageCoder:
                     ValidWordCount += 1
         
         Percentage = round(ValidWordCount/len(CleanMsg), 4) * 100
-        print(Percentage)
+        
         IsMsgValid = True if Percentage >= self.mThreshold else False
         
         return IsMsgValid
@@ -253,7 +254,7 @@ class CMessageCoder:
                 
                 else:
                     self.mPossibleMsg.append(NewMsg)
-                    continue
+                    
             #---------------------
             DFSRecursive(CurrentNode)
             
@@ -288,7 +289,6 @@ class CMessageCoder:
                 Key = CurrentNode.GetValue()
                 NewMsg = self.DecodeMessages(Key)
 
-                
                 #If message is successfully decode. Validify the message
                 if NewMsg:
                     IsMsgDecoded = self.ValidateDecodedMsgs(NewMsg)
@@ -299,7 +299,7 @@ class CMessageCoder:
                     
                     else:
                         self.mPossibleMsg.append(NewMsg)
-                        continue
+                        
                 #---------------------
                 
                 # Add child nodes
@@ -353,7 +353,7 @@ class CMessageCoder:
                     
                     else:
                         self.mPossibleMsg.append(NewMsg)
-                        continue
+                        
                 #---------------------
                 
                 # Add child nodes
@@ -436,7 +436,6 @@ class CMessageCoder:
                 
                 else:
                     self.mPossibleMsg.append(NewMsg)
-                    continue
             
             DFSLimit(CurrentNode, aLimit)
         
@@ -504,8 +503,8 @@ m.CreateTree()
 m.GetInputMsg("fruit_ode.txt")
 m.GetDictionary("dict_fruit.txt")
 m.mThreshold = 100.0
-BFS = m.BFS()
-print(m.mPossibleMsg)
+BFS = m.DFS()
+#print(m.mPossibleMsg)
 
 
 
