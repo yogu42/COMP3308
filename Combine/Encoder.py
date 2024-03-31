@@ -43,7 +43,7 @@ class CSearchParams:
     
     def PrintOutMetrics(self):
         PrintOut = ""
-        l0 = f"Key: {self.mSearchParams.mKey}\n"
+        l0 = f"Key: {self.mKey}\n"
         l1 = (f"Path Cost: {self.mPathCost}\n\n")
         l2 = (f"Num nodes expanded: {self.mExpandedNodes}\n")
         l3 = (f"Max fringe size: {self.mMaxFringeSize}\n")
@@ -218,7 +218,7 @@ class CMessageCoder:
         
         while Fringe:
             # Pop current node out of the fringe 
-            CurrentNode = Fringe.pop()
+            CurrentNode = Fringe.pop(0)
             CurrentKey = CurrentNode.GetValue()
             self.mSearchParams.AddPathCost(CurrentNode.mCost)
             
@@ -226,7 +226,7 @@ class CMessageCoder:
             ExpandedKeys.append(CurrentKey)
   
             # Main decoding
-            NewMsgs = self.DecodeMessages(self,CurrentKey)
+            NewMsgs = self.DecodeMessages(CurrentKey)
             if NewMsgs:
                 # Validate the message IF True stop
                 if self.ValidateDecodedMsgs(NewMsgs):
@@ -241,11 +241,9 @@ class CMessageCoder:
                         Fringe.append(node)
                         Expanded.append(node)
                         ExpandedKeys.append(node.GetValue())
-                        self.mSearchParams.ExpandedNodesSize(Expanded)
-                        self.mSearchParams.GetMaxFringeSize(len(Fringe))
                     
-                    self.mSearchParams.ExpandedNodesSize(Expanded)
-                    self.mSearchParams.GetMaxFringeSize(len(Fringe))
+                    #self.mSearchParams.ExpandedNodesSize(Expanded)
+                    #self.mSearchParams.GetMaxFringeSize(len(Fringe))
                     break
                 
                 # If not generate children
@@ -335,11 +333,11 @@ class CMessageCoder:
             if aDebug == "y":
                 if (len(self.mPossibleMsg) < self.mDebugMsgsLen):
                     for line in self.mPossibleMsg:
-                        DebugMsg += line + "\n\\n"
+                        DebugMsg += line 
                     
                 else:
                     for i in range(self.mDebugMsgsLen):
-                        DebugMsg += self.mDebugMsgsLen[i] + "\n\n"
+                        DebugMsg += self.mDebugMsgsLen[i] 
             
             FinalOutput = PrintOut + SearchParamStr + DebugMsg
         
@@ -354,9 +352,11 @@ def task4(aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
     
 if __name__ == '__main__':
     # Example function calls below, you can add your own to test the task4 function
-    print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
-    print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
-    print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))        
+    #print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+    MsgEncoderObj = CMessageCoder()
+    print(MsgEncoderObj.BlindSearch('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+    #print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+    #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))        
             
 
 
