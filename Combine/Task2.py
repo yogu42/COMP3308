@@ -21,12 +21,12 @@ def task2(filename, letters):
     swaps = [] 
     for swap in swaps2:
       # Ensure each letter pair is in alphabetical order
-      
+
       swaps.append(combine_in_order(swap[0], swap[1]))
     
     # Sort the swaps alphabetically
     swaps.sort()
-    print(swaps)
+
     with open(filename, 'r') as file:
       contents = file.read()
     

@@ -6,26 +6,25 @@ Created on Sat Mar 23 18:32:48 2024
 """
 
 class CNode:
-    def __init__(self, aValue,):
+    def __init__(self, aValue):
         self.mVal = aValue
         self.mCost= 1
-        self.mLeftChild = None
-        self.mRightChild = None
+        self.mNumChild = 0
+        self.mChildNodes = []
     
-    def InsertLeftNode(self,aChildNode):
+    def InsertNode(self,aChildNode):
         if isinstance(aChildNode,CNode):
-            self.mLeftChild = aChildNode
-    
-    def InsertRightNode(self,aChildNode):
-        if isinstance(aChildNode,CNode):
-            self.mRightChild = aChildNode
+            self.mChildNodes.append(aChildNode)
+            self.mNumChild = len(self.mChildNodes)
     
     def GetValue(self):
         return self.mVal
 
 class CTree:
     def __init__(self):
-        self.mRoot = None
+        self.mRoot = CNode("  ")
+        self.mRoot.mCost = 0
+        
         self.mSwapPatterns = []
         self.mAllNodes = []
     
@@ -40,51 +39,31 @@ class CTree:
         
         self.mSwapPatterns = aPatterns
     
-    def GenerateStructure(self):
-        # Use tuple of swap patterns to create.
-        # A:B,C,D,E
-        # B:C,D,E
-        # C:D,E
-        # D:E
-        # ...
-        # Each line represents a branch with the key of the dict being first
-        # letter and the second being the letter it is swapping for. Combine
-        # both u have a node. 
-        # The line following represent other branch but its first combo is the
-        # right child node of the first node of the first branch and so on
-        #                   AB
-        #                  /  \
-        #                 AC   BC
-        #                /    /  \
-        #               AD   BD  CD
-        #              /    /   /  \
-        #             AE   BE  CE  DE
-        # Create all swap combos
-        for pattern in self.mSwapPatterns:
-            newBranch = []
-            for key,swaps in pattern.items():
-                for letter in swaps:
-                    newNode = CNode(key + letter)
-                    newBranch.append(newNode)
-            
-            self.mAllNodes.append(newBranch)
-            
-        # Iterate the allNode list and link the nodes
-        # First letter of child node matches first letter of parent node,
-        # it is on the Left of the Parent Node
+    def GenerateChildNodes(self,aParentNode):
+        CurrentKey = aParentNode.GetValue()
+        ChildNodeList = []
         
-        # Second letter of child node matches second letter of parent node,
-        # it is on the RIGHT of the Parent Node
-        
-        # Establish the branches
-        for branch in self.mAllNodes:
-            for l in range(1,len(branch)):
-                branch[l-1].InsertLeftNode(branch[l])
-            
-        for i in range(len(self.mAllNodes)-1):
-            self.mAllNodes[i][0].InsertRightNode(self.mAllNodes[i+1][0])
-        
-        self.mRoot = self.mAllNodes[0][0]
+        if CurrentKey == "  ":
+            for combo in self.mSwapPatterns:
+                for l1,l2 in combo.items():
+                    for letter in l2:
+                        NewNode = CNode(l1 + letter)
+                    
+                        ChildNodeList.append(NewNode)
+                        aParentNode.InsertNode(NewNode)
+        else:
+            for combo in self.mSwapPatterns:
+                for l1,l2 in combo.items():
+                    if l1 == CurrentKey[0]:
+                        # Find second letter index
+                        ind = l2.index(CurrentKey[1])
+                        for i in range(ind,len(l2)):
+                            NewNode = CNode(l1 + l2[i])
+                            ChildNodeList.append(NewNode)
+                            aParentNode.InsertNode(NewNode)
+
+        #-------------------------------------------------
+        return ChildNodeList
     
     def ReturnRoot(self):
         if isinstance(self.mRoot, CNode):
@@ -94,9 +73,6 @@ class CTree:
         # Start from root and print it
         pass
         
-
-
-            
 
             
             
