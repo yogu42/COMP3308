@@ -158,13 +158,9 @@ class CMessageCoder:
         Letters.sort()
         # Generate all swap patterns
         for i in range(len(Letters)-1):
-            newBranch = {Letters[i]:[]}
-            
             for j in range(i+1,len(Letters)):
-                newBranch[Letters[i]].append(Letters[j])
-            
-            self.mSwaps.append(newBranch)
-        
+                self.mSwaps.append(Letters[i] + Letters[j])
+        print(self.mSwaps)
         # Copy swap patterns 
         self.mTree.GetSwapPatterns(self.mSwaps)
     
@@ -227,13 +223,11 @@ class CMessageCoder:
   
             # Main decoding
             NewMsgs = self.DecodeMessages(CurrentKey)
+            self.mSearchParams.AddKey(CurrentKey)
             if NewMsgs:
                 # Validate the message IF True stop
                 if self.ValidateDecodedMsgs(NewMsgs):
                     self.mFinalOutputMsg = NewMsgs
-                    
-                    # Add current node key
-                    self.mSearchParams.AddKey(CurrentKey)
                     
                     # Generate children anyways
                     NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
@@ -249,9 +243,7 @@ class CMessageCoder:
                 # If not generate children
                 else:
                     NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
-                    
-                    # Add current node key 
-                    self.mSearchParams.AddKey(CurrentKey)
+
                     # Generate new children
                     for node in NewChildren:
                         Fringe.append(node)
@@ -347,21 +339,19 @@ class CMessageCoder:
  
 def task4(aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
     MsgEncoderObj = CMessageCoder()
-    MsgEncoderObj.BlindSearch(aAlgo, aMsgFile, aDictFile, aThresh, aLetters, aDebug)
-    return MsgEncoderObj.BlindSearch(aAlgo, aMsgFile, aDictFile, aThresh, aLetters, aDebug)
+    m = MsgEncoderObj.BlindSearch(aAlgo, aMsgFile, aDictFile, aThresh, aLetters, aDebug)
+    return m
     
 if __name__ == '__main__':
     # Example function calls below, you can add your own to test the task4 function
     #print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
-    MsgEncoderObj = CMessageCoder()
-    print(MsgEncoderObj.BlindSearch('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
-    #print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+    print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
     #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))        
             
 
 
 # m = CMessageCoder()
-# m.GenerateSwapCombo("ABCDEFG")
+# m.GenerateSwapCombo("ABC")
 # m.GetInputMsg("jingle_bells.txt")
 # m.GetDictionary("dict_xmas.txt")
 # m.mThreshold = 90

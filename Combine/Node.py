@@ -31,11 +31,7 @@ class CTree:
     def GetSwapPatterns(self,aPatterns):
         if not isinstance(aPatterns,list):
             raise TypeError("Wrong Type: Must be a list")
-        
-        else:
-            for e in aPatterns:
-                if not isinstance(e, dict):
-                    raise TypeError("Wrong Type: Must be a dictionary with STR key and [] value")
+    
         
         self.mSwapPatterns = aPatterns
     
@@ -45,23 +41,17 @@ class CTree:
         
         if CurrentKey == "  ":
             for combo in self.mSwapPatterns:
-                for l1,l2 in combo.items():
-                    for letter in l2:
-                        NewNode = CNode(l1 + letter)
-                    
-                        ChildNodeList.append(NewNode)
-                        aParentNode.InsertNode(NewNode)
+                NewNode = CNode(combo)
+                aParentNode.InsertNode(NewNode)
+                ChildNodeList.append(NewNode)
+        
         else:
-            for combo in self.mSwapPatterns:
-                for l1,l2 in combo.items():
-                    if l1 == CurrentKey[0]:
-                        # Find second letter index
-                        ind = l2.index(CurrentKey[1])
-                        for i in range(ind,len(l2)):
-                            NewNode = CNode(l1 + l2[i])
-                            ChildNodeList.append(NewNode)
-                            aParentNode.InsertNode(NewNode)
-
+            FindInd = self.mSwapPatterns.index(CurrentKey)
+            
+            for i in range(FindInd,len(self.mSwapPatterns)):
+                NewNode = CNode(self.mSwapPatterns[i])
+                aParentNode.InsertNode(NewNode)
+                ChildNodeList.append(NewNode)
         #-------------------------------------------------
         return ChildNodeList
     
