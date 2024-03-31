@@ -13,7 +13,7 @@ class CSearchParams:
     def __init__(self):
         self.mPathCost = 0
         self.mExpandedNodes = 0
-        self.mMaxFringeSize = 0
+        self.mMaxFringeSize = 1
         self.mDepth = 0
         
         # Some Constants
@@ -68,6 +68,7 @@ class CMessageCoder:
         # Threshold
         self.mInputMsg = None
         self.mFinalOutputMsg = False
+        self.mCurrentDecodedMsgs = None
         self.mPossibleMsg = []
         self.mDict = []
         self.mThreshold = 0
@@ -94,16 +95,16 @@ class CMessageCoder:
         try:
             with open(aFilename, 'r') as file:
                 self.mInputMsg = file.read()
+                self.mCurrentDecodedMsgs = self.mInputMsg
         except:
             print("Cannot open file ",aFilename)
     
     def GetDictionary(self,aDictFile):
         # Get all words from the dictionary
         with open(aDictFile, 'r') as file:
-          for line in file:
-            CleanLine = line.rstrip()
-            self.mDict.append(CleanLine)
-            
+            content = file.read()
+        self.mDict = content.split('\n')
+
     def DecodeMessages(self,aKey):
         # Parse key, can only contatin 2 different letters
         if not isinstance(aKey, str):
@@ -111,7 +112,6 @@ class CMessageCoder:
             
         if not (len(aKey) == 2):
             raise ValueError("STring must contain two letters only")
-    
         
         # iterate through input message
         NewMsg = ""
@@ -119,7 +119,7 @@ class CMessageCoder:
             if aKey == "  ":
                 return self.mInputMsg
             else:
-                for char in self.mInputMsg:
+                for char in self.mCurrentDecodedMsgs:
                     IsSwapped = False
                     NewChar = char
                     
@@ -149,6 +149,7 @@ class CMessageCoder:
             
                 # insert decoded messages
                 self.mPossibleMsg.append(NewMsg)
+                self.mCurrentDecodedMsgs = NewMsg
                 return NewMsg
         else:
             return False
@@ -160,11 +161,10 @@ class CMessageCoder:
         for i in range(len(Letters)-1):
             for j in range(i+1,len(Letters)):
                 self.mSwaps.append(Letters[i] + Letters[j])
-        print(self.mSwaps)
+        
         # Copy swap patterns 
         self.mTree.GetSwapPatterns(self.mSwaps)
     
-        
     def ValidateDecodedMsgs(self, aMsg):
         # Remove all symbols
         Symbols = string.punctuation
@@ -181,17 +181,15 @@ class CMessageCoder:
         # Check percentage of word
         ValidWordCount = 0
         for MsgWord in MsgsWordsList:
-            for Word in self.mDict:
-                if MsgWord.lower() == Word.lower():
+            for d in self.mDict:
+                if MsgWord.lower() == d.lower():
                     ValidWordCount += 1
-
+         
         Percentage = round(ValidWordCount/len(MsgsWordsList), 4) * 100
-        
-        IsMsgValid = True if Percentage >= self.mThreshold else False
-        
-        return IsMsgValid
 
-    
+        IsMsgValid = True if Percentage >= self.mThreshold else False
+        return IsMsgValid
+ 
     def DFS(self):
         Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
         Expanded = []                           # List store expanded nodes
@@ -236,8 +234,8 @@ class CMessageCoder:
                         Expanded.append(node)
                         ExpandedKeys.append(node.GetValue())
                     
-                    #self.mSearchParams.ExpandedNodesSize(Expanded)
-                    #self.mSearchParams.GetMaxFringeSize(len(Fringe))
+                    self.mSearchParams.ExpandedNodesSize(Expanded)
+                    self.mSearchParams.GetMaxFringeSize(len(Fringe))
                     break
                 
                 # If not generate children
@@ -249,9 +247,9 @@ class CMessageCoder:
                         Fringe.append(node)
                         Expanded.append(node)
                         ExpandedKeys.append(node.GetValue())
-                        self.mSearchParams.ExpandedNodesSize(Expanded)
-                        self.mSearchParams.GetMaxFringeSize(len(Fringe))
-                        
+                    self.mSearchParams.ExpandedNodesSize(Expanded)
+                    self.mSearchParams.GetMaxFringeSize(len(Fringe))
+        print(ExpandedKeys)                
         return ExpandedKeys
         
     def UCS(self):
@@ -310,7 +308,7 @@ class CMessageCoder:
             if aDebug == "y":
                 if (len(self.mPossibleMsg) < self.mDebugMsgsLen):
                     for line in self.mPossibleMsg:
-                        DebugMsg += line + "\n\\n"
+                        DebugMsg += line + "\n\n"
                     
                 else:
                     for i in range(self.mDebugMsgsLen):
