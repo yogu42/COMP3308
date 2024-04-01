@@ -31,9 +31,14 @@ class CNode:
         i = 0
         
         def Back2Parent(aNode):
-            if aNode.mParent is not None:
-                ParentNodesStr.append(aNode.GetValue())
-                Back2Parent(aNode.mParent)
+            if aNode.mDepth == 999:
+                return
+            else:
+                if aNode.mParent is not None:
+                    ParentNodesStr.append(aNode.GetValue())
+                    Back2Parent(aNode.mParent)
+                else:
+                    return
                 
         Back2Parent(self)
         ParentNodesStr.append("  ")
@@ -47,6 +52,7 @@ class CTree:
     def __init__(self):
         self.mRoot = CNode("  ")
         self.mRoot.mCost = 0
+        self.mRoot.mDepth = 0
         
         self.mSwapPatterns = []
         self.mAllNodes = []
@@ -75,29 +81,3 @@ class CTree:
     def ReturnRoot(self):
         if isinstance(self.mRoot, CNode):
             return self.mRoot
-        
-    def PrintTree(self):
-        # Start from root and print it
-        pass
-        
-
-
-
-
-    
-          
-            
-            
-                
-        
-        
-        
-        
-        
-        
-        
-            
-    
-    
-        
-
