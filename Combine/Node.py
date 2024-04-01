@@ -28,25 +28,15 @@ class CNode:
     def BackTrack(self):
         # Back track to find keys
         ParentNodesStr = []
-        i = 0
+        CurrentNode = self
         
-        def Back2Parent(aNode):
-            if aNode.mDepth == 999:
-                return
-            else:
-                if aNode.mParent is not None:
-                    ParentNodesStr.append(aNode.GetValue())
-                    Back2Parent(aNode.mParent)
-                else:
-                    return
-                
-        Back2Parent(self)
-        ParentNodesStr.append("  ")
+        while CurrentNode:
+            ParentNodesStr.append(CurrentNode.mVal)
+            CurrentNode = CurrentNode.mParent
+        
         ParentNodesStr.reverse()
         
         return ParentNodesStr
-                
-            
 
 class CTree:
     def __init__(self):
