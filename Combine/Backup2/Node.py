@@ -10,11 +10,8 @@ class CNode:
         self.mVal = aValue
         self.mCost= 1
         self.mDepth = 0
-        
         self.mNumChild = 0
         self.mChildNodes = []
-        
-        self.mParent = None
     
     def InsertNode(self,aChildNode):
         if isinstance(aChildNode,CNode):
@@ -24,24 +21,6 @@ class CNode:
     
     def GetValue(self):
         return self.mVal
-
-    def BackTrack(self):
-        # Back track to find keys
-        ParentNodesStr = []
-        i = 0
-        
-        def Back2Parent(aNode):
-            if aNode.mParent is not None:
-                ParentNodesStr.append(aNode.GetValue())
-                Back2Parent(aNode.mParent)
-                
-        Back2Parent(self)
-        ParentNodesStr.append("  ")
-        ParentNodesStr.reverse()
-        
-        return ParentNodesStr
-                
-            
 
 class CTree:
     def __init__(self):
@@ -62,13 +41,19 @@ class CTree:
         CurrentKey = aParentNode.GetValue()
         ChildNodeList = []
         
-        for combo in self.mSwapPatterns:
-            NewNode = CNode(combo)
-            NewNode.mParent = aParentNode
-            aParentNode.InsertNode(NewNode)
-            ChildNodeList.append(NewNode)
-            self.mAllNodes.append(NewNode)
-
+        if CurrentKey == "  ":
+            for combo in self.mSwapPatterns:
+                NewNode = CNode(combo)
+                aParentNode.InsertNode(NewNode)
+                ChildNodeList.append(NewNode)
+        
+        else:
+            FindInd = self.mSwapPatterns.index(CurrentKey)
+            
+            for i in range(FindInd,len(self.mSwapPatterns)):
+                NewNode = CNode(self.mSwapPatterns[i])
+                aParentNode.InsertNode(NewNode)
+                ChildNodeList.append(NewNode)
         #-------------------------------------------------
         return ChildNodeList
     
@@ -81,11 +66,7 @@ class CTree:
         pass
         
 
-
-
-
-    
-          
+            
             
             
                 

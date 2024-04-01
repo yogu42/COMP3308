@@ -20,14 +20,13 @@ class CSearchParams:
         self.mMaxDepth = 999
         
         # Key
-        self.mKey = []
+        self.mKey = ""
     
-    def AddKey(self,aKeyList):
-        self.mKey = aKeyList
+    def AddKey(self,aKey):
+        self.mKey += aKey
         
-    def AddPathCost(self, aKeyList):
-        if isinstance(aKeyList, list):
-            self.mPathCost = len(aKeyList) - 1
+    def AddPathCost(self, aCost):
+        self.mPathCost += aCost
     
     def ExpandedNodesSize(self, aExpandList):
         if isinstance(aExpandList,list):
@@ -44,15 +43,11 @@ class CSearchParams:
     
     def PrintOutMetrics(self):
         PrintOut = ""
-        AllKeys = ""
-        for k in range(1,len(self.mKey)):
-            AllKeys += self.mKey[k]
-            
-        l0 = f"Key: {AllKeys}\n"
-        l1 = f"Path Cost: {self.mPathCost}\n\n"
-        l2 = f"Num nodes expanded: {self.mExpandedNodes}\n"
-        l3 = f"Max fringe size: {self.mMaxFringeSize}\n"
-        l4 = f"Max depth: {self.mDepth}\n\n"
+        l0 = f"Key: {self.mKey}\n"
+        l1 = (f"Path Cost: {self.mPathCost}\n\n")
+        l2 = (f"Num nodes expanded: {self.mExpandedNodes}\n")
+        l3 = (f"Max fringe size: {self.mMaxFringeSize}\n")
+        l4 = (f"Max depth: {self.mDepth}\n\n")
         
         PrintOut = l0 + l1 + l2  + l3 + l4
         return PrintOut
@@ -68,7 +63,7 @@ class CMessageCoder:
         self.mFlagBFS = "b"
         self.mFlagUCS = "u"
         self.mFlagIDS = "i"
-        
+            
         # I/O messages and dictionary
         # Threshold
         self.mInputMsg = None
@@ -100,7 +95,6 @@ class CMessageCoder:
         try:
             with open(aFilename, 'r') as file:
                 self.mInputMsg = file.read()
-                
                 self.mCurrentDecodedMsgs = self.mInputMsg
         except:
             print("Cannot open file ",aFilename)
@@ -111,38 +105,39 @@ class CMessageCoder:
             content = file.read()
         self.mDict = content.split('\n')
 
-    def DecodeMessages(self,aKeyList):
+    def DecodeMessages(self,aKey):
+        # Parse key, can only contatin 2 different letters
+        if not isinstance(aKey, str):
+            raise TypeError("Must be a string")
+            
+        if not (len(aKey) == 2):
+            raise ValueError("STring must contain two letters only")
+        
         # iterate through input message
         NewMsg = ""
         if isinstance(self.mInputMsg, str):
-            if len(aKeyList) == 1:
-                self.mPossibleMsg.append(self.mInputMsg)
-                self.mCurrentDecodedMsgs = self.mInputMsg
-                
+            if aKey == "  ":
                 return self.mInputMsg
-            
-            elif len(aKeyList) == 2:
-                NewMsg = ""
-                swap = aKeyList[1]
+            else:
                 for char in self.mInputMsg:
                     IsSwapped = False
                     NewChar = char
                     
                     # Swap letters 
-                    if swap[1] == NewChar:
-                        NewChar = swap[0]
+                    if aKey[1] == NewChar:
+                        NewChar = aKey[0]
                         IsSwapped = True
                       
-                    elif swap[1].lower() == NewChar :
-                        NewChar  = swap[0].lower()
+                    elif aKey[1].lower() == NewChar :
+                        NewChar  = aKey[0].lower()
                         IsSwapped = True
                       
-                    elif swap[0] == NewChar:
-                        NewChar  = swap[1]
+                    elif aKey[0] == NewChar:
+                        NewChar  = aKey[1]
                         IsSwapped = True
                       
-                    elif swap[0].lower() == NewChar:
-                        NewChar = swap[1].lower()
+                    elif aKey[0].lower() == NewChar:
+                        NewChar = aKey[1].lower()
                         IsSwapped  = True
                     
                     # Construct new message
@@ -151,48 +146,11 @@ class CMessageCoder:
     
                     else:
                         NewMsg += NewChar
-                self.mPossibleMsg.append(NewMsg)
-                return NewMsg
-                        
-            elif len(aKeyList) > 2:
-                # Check how many keys are in based on what depth
-                for swap in aKeyList:
-                    NewMsg = ""
-                    for char in self.mCurrentDecodedMsgs:
-                        IsSwapped = False
-                        NewChar = char
-                        
-                        # Swap letters 
-                        if swap[1] == NewChar:
-                            NewChar = swap[0]
-                            IsSwapped = True
-                          
-                        elif swap[1].lower() == NewChar :
-                            NewChar  = swap[0].lower()
-                            IsSwapped = True
-                          
-                        elif swap[0] == NewChar:
-                            NewChar  = swap[1]
-                            IsSwapped = True
-                          
-                        elif swap[0].lower() == NewChar:
-                            NewChar = swap[1].lower()
-                            IsSwapped  = True
-                        
-                        # Construct new message
-                        if not IsSwapped:
-                            NewMsg += char
-        
-                        else:
-                            NewMsg += NewChar
-                    
-                    # Save current decoded message
-                    self.mCurrentDecodedMsgs = NewMsg
-                    
+            
                 # insert decoded messages
-                self.mPossibleMsg.append(self.mCurrentDecodedMsgs)
-                
-                return self.mCurrentDecodedMsgs
+                self.mPossibleMsg.append(NewMsg)
+                self.mCurrentDecodedMsgs = NewMsg
+                return NewMsg
         else:
             return False
     
@@ -223,11 +181,9 @@ class CMessageCoder:
         # Check percentage of word
         ValidWordCount = 0
         for MsgWord in MsgsWordsList:
-            if MsgWord.lower() in self.mDict:
-                ValidWordCount += 1
-            # for d in self.mDict:
-            #     if MsgWord.lower() == d:
-            #         ValidWordCount += 1
+            for d in self.mDict:
+                if MsgWord.lower() == d.lower():
+                    ValidWordCount += 1
          
         Percentage = round(ValidWordCount/len(MsgsWordsList), 4) * 100
 
@@ -239,9 +195,10 @@ class CMessageCoder:
         Expanded = []                           # List store expanded nodes
         ExpandedKeys = []                       # List store expanded nodes' value
         
-        self.mSearchParams.GetDepth(0)
-        self.mSearchParams.GetMaxFringeSize(len(Fringe))
         
+        def DFSRecursive(aNode):
+                    
+            Expanded.append(aNode)
         
         return ExpandedKeys
 
@@ -257,42 +214,34 @@ class CMessageCoder:
             if self.mSearchParams.mExpandedNodes > self.mExpandLimit:
                 break
             
-            if self.mSearchParams.mDepth > self.mSearchParams.mMaxDepth:
-                break
-            
-            # Pop current node out of the fringe  get the key list
+            # Pop current node out of the fringe 
             CurrentNode = Fringe.pop(0)
             CurrentKey = CurrentNode.GetValue()
-            KeyList = CurrentNode.BackTrack()
-            
-            # Get depth and cost of expanded node
             self.mSearchParams.GetDepth(CurrentNode.mDepth)
-             
+            self.mSearchParams.AddPathCost(CurrentNode.mCost)
+            
             Expanded.append(CurrentNode)
             ExpandedKeys.append(CurrentKey)
   
-            # Main decoding--------------------
-            # Decode all ccombintations
-            NewMsgs = self.DecodeMessages(KeyList)
-            self.mSearchParams.AddKey(KeyList)
+            # Main decoding
+            NewMsgs = self.DecodeMessages(CurrentKey)
+            self.mSearchParams.AddKey(CurrentKey)
             if NewMsgs:
                 # Validate the message IF True stop
                 if self.ValidateDecodedMsgs(NewMsgs):
                     self.mFinalOutputMsg = NewMsgs
                     
-                    # Generate children of the expanded node even if this is
-                    # is the goal node
+                    # Generate children anyways
                     NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
                     
                     for node in NewChildren:
                         Fringe.append(node)
+                        Expanded.append(node)
+                        ExpandedKeys.append(node.GetValue())
                     
                     # Record sizes of Expanded, Fringe and depth value
                     self.mSearchParams.ExpandedNodesSize(Expanded)
-                    #self.mSearchParams.GetMaxFringeSize(len(Fringe))
-                    
-                    # Record path cost
-                    self.mSearchParams.AddPathCost(KeyList)
+                    self.mSearchParams.GetMaxFringeSize(len(Fringe))
                     break
                 
                 # If not generate children
@@ -302,11 +251,13 @@ class CMessageCoder:
                     # Generate new children
                     for node in NewChildren:
                         Fringe.append(node)
-
+                        Expanded.append(node)
+                        ExpandedKeys.append(node.GetValue())
+                        
                     # Record sizes of Expanded, Fringe and depth value
                     self.mSearchParams.ExpandedNodesSize(Expanded)
                     self.mSearchParams.GetMaxFringeSize(len(Fringe))
-
+                       
         return ExpandedKeys
         
     def UCS(self):
@@ -359,46 +310,32 @@ class CMessageCoder:
         FinalOutput = ""
         
         if self.mFinalOutputMsg:
-            PrintOut = f"Solution: {self.mFinalOutputMsg}\n\n"
+            PrintOut = f"Solution: {self.mFinalOutputMsg}\n"
             SearchParamStr = self.mSearchParams.PrintOutMetrics()
-            DebugMsg = "First few expanded states:\n"
+            DebugMsg = ""
             if aDebug == "y":
                 if (len(self.mPossibleMsg) < self.mDebugMsgsLen):
-                    for i in range(len(self.mPossibleMsg)):
-                        if i < len(self.mPossibleMsg)-1:
-                            DebugMsg += self.mPossibleMsg[i] + "\n\n"
-                        else:
-                            DebugMsg += self.mPossibleMsg[i]
+                    for line in self.mPossibleMsg:
+                        DebugMsg += line + "\n\n"
                     
                 else:
                     for i in range(self.mDebugMsgsLen):
-                        if i < self.mDebugMsgsLen-1:
-                            DebugMsg += self.mPossibleMsg[i] + "\n\n"
-                        else:
-                            DebugMsg += self.mPossibleMsg[i]
+                        DebugMsg += self.mDebugMsgsLen[i] + "\n\n"
                         
             FinalOutput = PrintOut + SearchParamStr + DebugMsg
             
         else:
             PrintOut = f"No solution found.\n"
             SearchParamStr = self.mSearchParams.PrintOutMetrics()
-            DebugMsg = "First few expanded states:\n"
+            DebugMsg = ""
             if aDebug == "y":
                 if (len(self.mPossibleMsg) < self.mDebugMsgsLen):
-                    for i in range(len(self.mPossibleMsg)):
-                        if i < len(self.mPossibleMsg)-1:
-                            DebugMsg += self.mPossibleMsg[i] + "\n\n"
-                            
-                        else:
-                            DebugMsg += self.mPossibleMsg[i]
+                    for line in self.mPossibleMsg:
+                        DebugMsg += line 
                     
                 else:
                     for i in range(self.mDebugMsgsLen):
-                        if i < self.mDebugMsgsLen-1:
-                            DebugMsg += self.mPossibleMsg[i] + "\n\n"
-                            
-                        else:
-                            DebugMsg += self.mPossibleMsg[i]
+                        DebugMsg += self.mDebugMsgsLen[i] 
             
             FinalOutput = PrintOut + SearchParamStr + DebugMsg
         
@@ -417,6 +354,16 @@ if __name__ == '__main__':
     print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
     #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))        
             
+
+
+# m = CMessageCoder()
+# m.GenerateSwapCombo("ABC")
+# m.GetInputMsg("jingle_bells.txt")
+# m.GetDictionary("dict_xmas.txt")
+# m.mThreshold = 90
+# NewMsg = m.ValidateDecodedMsgs(m.mInputMsg)
+# #BFS = m.DFS()
+# #print(m.mPossibleMsg)
 
 
 
