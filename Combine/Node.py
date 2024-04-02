@@ -84,6 +84,8 @@ class CTree:
             NewNode.mState = aParentNode.mState
             NewNode.GetCurrentState(aParentNode.mState)
             
+            NewNode.mDepth = aParentNode.mDepth + 1
+            
             # Add child node
             aParentNode.InsertNode(NewNode)
             
