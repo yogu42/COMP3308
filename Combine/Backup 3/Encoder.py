@@ -202,189 +202,188 @@ class CMessageCoder:
 
         IsMsgValid = True if Percentage >= self.mThreshold else False
         return IsMsgValid
+ 
+    def DFS(self):
+        Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
+        Expanded = []                           # List store expanded nodes
+        ExpandedKeys = []                       # List store expanded nodes' value
     
-    def 
-    # def DFS(self):
-    #     Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
-    #     Expanded = []                           # List store expanded nodes
-    #     ExpandedKeys = []                       # List store expanded nodes' value
-    
-    #     def DFSNoLimit(aNode):
-    #         if self.mSearchParams.mExpandedNodes  >= self.mExpandLimit:
-    #             return
+        def DFSNoLimit(aNode):
+            if self.mSearchParams.mExpandedNodes  >= self.mExpandLimit:
+                return
             
-    #         self.mSearchParams.GetDepth(aNode.mDepth)
+            self.mSearchParams.GetDepth(aNode.mDepth)
             
-    #         # Get depth and cost of expanded node
-    #         NodeKey = aNode.GetValue()
-    #         #KeyList = aNode.BackTrack()
+            # Get depth and cost of expanded node
+            NodeKey = aNode.GetValue()
+            #KeyList = aNode.BackTrack()
             
-    #         Expanded.append(aNode)
-    #         ExpandedKeys.append(NodeKey)
+            Expanded.append(aNode)
+            ExpandedKeys.append(NodeKey)
             
-    #         self.mSearchParams.ExpandedNodesSize(Expanded)
+            self.mSearchParams.ExpandedNodesSize(Expanded)
             
-    #         # Main decoding--------------------
-    #         # Decode all ccombintations
-    #         NewMsgs = self.DecodeMessages(ExpandedKeys)
+            # Main decoding--------------------
+            # Decode all ccombintations
+            NewMsgs = self.DecodeMessages(ExpandedKeys)
             
-    #         if NewMsgs:
-    #             # Validate the message IF True stop
-    #             if self.ValidateDecodedMsgs(NewMsgs):
-    #                 self.mSearchParams.AddKey(ExpandedKeys)
-    #                 self.mFinalOutputMsg = NewMsgs
+            if NewMsgs:
+                # Validate the message IF True stop
+                if self.ValidateDecodedMsgs(NewMsgs):
+                    self.mSearchParams.AddKey(ExpandedKeys)
+                    self.mFinalOutputMsg = NewMsgs
 
-    #                 # Record path cost
-    #                 self.mSearchParams.AddPathCost(ExpandedKeys)
+                    # Record path cost
+                    self.mSearchParams.AddPathCost(ExpandedKeys)
 
-    #                 return 
+                    return 
                 
-    #             # If not generate children
-    #             else:
-    #                 NewChildren = self.mTree.GenerateChildNodes(aNode)
-    #                 self.mSearchParams.GetMaxFringeSize(len(Fringe) + len(NewChildren))
+                # If not generate children
+                else:
+                    NewChildren = self.mTree.GenerateChildNodes(aNode)
+                    self.mSearchParams.GetMaxFringeSize(len(Fringe) + len(NewChildren))
                     
-    #                 NewNode = NewChildren.pop(0)  
+                    NewNode = NewChildren.pop(0)  
                     
 
-    #                 # Check if depth is larger or equal to cancel expansion
-    #                 if self.mSearchParams.mDepth >= 999:
-    #                     return 
+                    # Check if depth is larger or equal to cancel expansion
+                    if self.mSearchParams.mDepth >= 999:
+                        return 
                     
-    #                 Fringe.extend(NewChildren)
+                    Fringe.extend(NewChildren)
 
-    #                 DFSNoLimit(NewNode)
+                    DFSNoLimit(NewNode)
                 
                     
-    #     while Fringe:
-    #         CurrentNode = Fringe.pop(0)
-    #         self.mSearchParams.GetDepth(CurrentNode.mDepth)
-    #         DFSNoLimit(CurrentNode)
+        while Fringe:
+            CurrentNode = Fringe.pop(0)
+            self.mSearchParams.GetDepth(CurrentNode.mDepth)
+            DFSNoLimit(CurrentNode)
 
-    #     return ExpandedKeys
+        return ExpandedKeys
 
-    # def BFS(self):
-    #     Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
-    #     Expanded = []                           # List store expanded nodes
-    #     ExpandedKeys = []                       # List store expanded nodes' value
+    def BFS(self):
+        Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
+        Expanded = []                           # List store expanded nodes
+        ExpandedKeys = []                       # List store expanded nodes' value
         
-    #     self.mSearchParams.GetDepth(0)
-    #     self.mSearchParams.GetMaxFringeSize(len(Fringe))
+        self.mSearchParams.GetDepth(0)
+        self.mSearchParams.GetMaxFringeSize(len(Fringe))
         
-    #     while Fringe:
-    #         if self.mSearchParams.mExpandedNodes >= self.mExpandLimit:
-    #             break
+        while Fringe:
+            if self.mSearchParams.mExpandedNodes >= self.mExpandLimit:
+                break
             
-    #         # Pop current node out of the fringe  get the key list
-    #         CurrentNode = Fringe.pop(0)
-    #         CurrentKey = CurrentNode.GetValue()
-    #         KeyList = CurrentNode.BackTrack()
+            # Pop current node out of the fringe  get the key list
+            CurrentNode = Fringe.pop(0)
+            CurrentKey = CurrentNode.GetValue()
+            KeyList = CurrentNode.BackTrack()
             
-    #         # Get depth and cost of expanded node
-    #         self.mSearchParams.GetDepth(CurrentNode.mDepth)
+            # Get depth and cost of expanded node
+            self.mSearchParams.GetDepth(CurrentNode.mDepth)
              
-    #         Expanded.append(CurrentNode)
-    #         ExpandedKeys.append(CurrentKey)
+            Expanded.append(CurrentNode)
+            ExpandedKeys.append(CurrentKey)
   
-    #         # Main decoding--------------------
-    #         # Decode all ccombintations
-    #         NewMsgs = self.DecodeMessages(KeyList)
-    #         self.mSearchParams.AddKey(KeyList)
+            # Main decoding--------------------
+            # Decode all ccombintations
+            NewMsgs = self.DecodeMessages(KeyList)
+            self.mSearchParams.AddKey(KeyList)
             
-    #         # Record path cost
-    #         self.mSearchParams.AddPathCost(KeyList)
-    #         if NewMsgs:
-    #             # Validate the message IF True stop
-    #             if self.ValidateDecodedMsgs(NewMsgs):
-    #                 self.mFinalOutputMsg = NewMsgs
+            # Record path cost
+            self.mSearchParams.AddPathCost(KeyList)
+            if NewMsgs:
+                # Validate the message IF True stop
+                if self.ValidateDecodedMsgs(NewMsgs):
+                    self.mFinalOutputMsg = NewMsgs
                     
-    #                 # Record sizes of Expanded, Fringe and depth value
-    #                 self.mSearchParams.ExpandedNodesSize(Expanded)
+                    # Record sizes of Expanded, Fringe and depth value
+                    self.mSearchParams.ExpandedNodesSize(Expanded)
 
-    #                 # Get final key
-    #                 self.mSearchParams.GetFinalKey()
-    #                 break
+                    # Get final key
+                    self.mSearchParams.GetFinalKey()
+                    break
                 
-    #             # If not generate children
-    #             else:
-    #                 NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
+                # If not generate children
+                else:
+                    NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
                     
-    #                 # Generate new children
-    #                 Fringe.extend(NewChildren)
+                    # Generate new children
+                    Fringe.extend(NewChildren)
 
-    #                 # Record sizes of Expanded, Fringe and depth value
-    #                 self.mSearchParams.ExpandedNodesSize(Expanded)
-    #                 self.mSearchParams.GetMaxFringeSize(len(Fringe))
+                    # Record sizes of Expanded, Fringe and depth value
+                    self.mSearchParams.ExpandedNodesSize(Expanded)
+                    self.mSearchParams.GetMaxFringeSize(len(Fringe))
 
-    #     return ExpandedKeys
+        return ExpandedKeys
         
-    # def UCS(self):
-    #     Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
-    #     Expanded = []                           # List store expanded nodes
-    #     ExpandedKeys = []                       # List store expanded nodes' value
+    def UCS(self):
+        Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
+        Expanded = []                           # List store expanded nodes
+        ExpandedKeys = []                       # List store expanded nodes' value
         
-    #     self.mSearchParams.GetDepth(0)
-    #     self.mSearchParams.GetMaxFringeSize(len(Fringe))
+        self.mSearchParams.GetDepth(0)
+        self.mSearchParams.GetMaxFringeSize(len(Fringe))
         
-    #     while Fringe:
-    #         if self.mSearchParams.mExpandedNodes >= self.mExpandLimit:
-    #             break
+        while Fringe:
+            if self.mSearchParams.mExpandedNodes >= self.mExpandLimit:
+                break
             
-    #         # Pop current node out of the fringe  get the key list
-    #         CurrentNode = Fringe.pop(0)
-    #         CurrentKey = CurrentNode.GetValue()
-    #         KeyList = CurrentNode.BackTrack()
+            # Pop current node out of the fringe  get the key list
+            CurrentNode = Fringe.pop(0)
+            CurrentKey = CurrentNode.GetValue()
+            KeyList = CurrentNode.BackTrack()
             
-    #         # Get depth and cost of expanded node
-    #         self.mSearchParams.GetDepth(CurrentNode.mDepth)
+            # Get depth and cost of expanded node
+            self.mSearchParams.GetDepth(CurrentNode.mDepth)
              
-    #         Expanded.append(CurrentNode)
-    #         ExpandedKeys.append(CurrentKey)
+            Expanded.append(CurrentNode)
+            ExpandedKeys.append(CurrentKey)
   
-    #         # Main decoding--------------------
-    #         # Decode all ccombintations
-    #         NewMsgs = self.DecodeMessages(KeyList)
-    #         self.mSearchParams.AddKey(KeyList)
+            # Main decoding--------------------
+            # Decode all ccombintations
+            NewMsgs = self.DecodeMessages(KeyList)
+            self.mSearchParams.AddKey(KeyList)
             
-    #         # Record path cost
-    #         self.mSearchParams.AddPathCost(KeyList)
-    #         if NewMsgs:
-    #             # Validate the message IF True stop
-    #             if self.ValidateDecodedMsgs(NewMsgs):
-    #                 self.mFinalOutputMsg = NewMsgs
+            # Record path cost
+            self.mSearchParams.AddPathCost(KeyList)
+            if NewMsgs:
+                # Validate the message IF True stop
+                if self.ValidateDecodedMsgs(NewMsgs):
+                    self.mFinalOutputMsg = NewMsgs
                     
-    #                 # Record sizes of Expanded, Fringe and depth value
-    #                 self.mSearchParams.ExpandedNodesSize(Expanded)
+                    # Record sizes of Expanded, Fringe and depth value
+                    self.mSearchParams.ExpandedNodesSize(Expanded)
 
-    #                 # Get final key
-    #                 self.mSearchParams.GetFinalKey()
-    #                 break
+                    # Get final key
+                    self.mSearchParams.GetFinalKey()
+                    break
                 
-    #             # If not generate children
-    #             else:
-    #                 NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
-    #                 # Generate new children
-    #                 Fringe.extend(NewChildren)
+                # If not generate children
+                else:
+                    NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
+                    # Generate new children
+                    Fringe.extend(NewChildren)
 
-    #                 # Record sizes of Expanded, Fringe and depth value
-    #                 self.mSearchParams.ExpandedNodesSize(Expanded)
-    #                 self.mSearchParams.GetMaxFringeSize(len(Fringe))
+                    # Record sizes of Expanded, Fringe and depth value
+                    self.mSearchParams.ExpandedNodesSize(Expanded)
+                    self.mSearchParams.GetMaxFringeSize(len(Fringe))
 
-    #     return ExpandedKeys
+        return ExpandedKeys
         
-    # def IDS(self):
-    #     Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
-    #     Expanded = []                           # List store expanded nodes
-    #     ExpandedKeys = []  
+    def IDS(self):
+        Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
+        Expanded = []                           # List store expanded nodes
+        ExpandedKeys = []  
         
-    #     depth = 0
-    #     def DLS(aLimit):
-    #         Expanded.clear()
-    #         ExpandedKeys.clear()
+        depth = 0
+        def DLS(aLimit):
+            Expanded.clear()
+            ExpandedKeys.clear()
             
             
         
-    #     return ExpandedKeys
+        return ExpandedKeys
 
     def BlindSearch(self,aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
         # Read input file
