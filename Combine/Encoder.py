@@ -24,8 +24,9 @@ class CSearchParams:
         self.mKey = []
     
     def GetFinalKey(self):
-        for k in range(1,len(self.mKey)):
-            self.mAllKeys += self.mKey[k]
+        # for k in range(1,len(self.mKey)):
+        #     self.mAllKeys += self.mKey[k]
+        self.mAllKeys = "".join(self.mKey[1:])
             
     def AddKey(self,aKeyList):
         self.mKey = aKeyList
@@ -49,9 +50,6 @@ class CSearchParams:
     
     def PrintOutMetrics(self):
         PrintOut = ""
-
-        #l0 = f"Key: {AllKeys}\n"
-        #l1 = f"Path Cost: {self.mPathCost}\n\n"
         l2 = f"Num nodes expanded: {self.mExpandedNodes}\n"
         l3 = f"Max fringe size: {self.mMaxFringeSize}\n"
         l4 = f"Max depth: {self.mDepth}"
@@ -101,7 +99,8 @@ class CMessageCoder:
             with open(aFilename, 'r') as file:
                 self.mInputMsg = file.read()
                 
-                self.mCurrentDecodedMsgs = self.mInputMsg
+                self.mTree.mRoot.AssignState(self.mInputMsg)
+                #self.mCurrentDecodedMsgs = self.mInputMsg
         except:
             print("Cannot open file ",aFilename)
     
@@ -110,63 +109,63 @@ class CMessageCoder:
         with open(aDictFile, 'r') as file:
             content = file.read()
         self.mDict = content.split('\n')
-
-    def DecodeMessages(self,aKeyList):
-        if isinstance(self.mInputMsg, str):
-            if len(aKeyList) == 1:
-                self.mPossibleMsg.append(self.mInputMsg)
-                self.mCurrentDecodedMsgs = self.mInputMsg
+        
+    # def DecodeMessages(self,aKeyList):
+    #     if isinstance(self.mInputMsg, str):
+    #         if len(aKeyList) == 1:
+    #             self.mPossibleMsg.append(self.mInputMsg)
+    #             self.mCurrentDecodedMsgs = self.mInputMsg
                 
-                return self.mInputMsg
+    #             return self.mInputMsg
             
-            elif len(aKeyList) == 2:
-                swap = aKeyList[1]
-                msg = list(self.mInputMsg)
+    #         elif len(aKeyList) == 2:
+    #             swap = aKeyList[1]
+    #             msg = list(self.mInputMsg)
                 
-                for i in range(len(msg)):
-                    if msg[i] == swap[0].lower():
-                        msg[i] = swap[1].lower()
+    #             for i in range(len(msg)):
+    #                 if msg[i] == swap[0].lower():
+    #                     msg[i] = swap[1].lower()
                             
-                    elif msg[i] == swap[0]:
-                        msg[i] = swap[1]
+    #                 elif msg[i] == swap[0]:
+    #                     msg[i] = swap[1]
                             
-                    elif msg[i] == swap[1].lower():
-                        msg[i] = swap[0].lower()
+    #                 elif msg[i] == swap[1].lower():
+    #                     msg[i] = swap[0].lower()
                             
-                    elif msg[i] == swap[1]:
-                        msg[i] = swap[0]
+    #                 elif msg[i] == swap[1]:
+    #                     msg[i] = swap[0]
                 
-                NewMsg = "".join(msg)
-                #self.mCurrentDecodedMsgs = NewMsg
+    #             NewMsg = "".join(msg)
+    #             #self.mCurrentDecodedMsgs = NewMsg
                 
-                self.mPossibleMsg.append(NewMsg)
-                return NewMsg
+    #             self.mPossibleMsg.append(NewMsg)
+    #             return NewMsg
                         
-            elif len(aKeyList) > 2:
-                self.mCurrentDecodedMsgs = self.mInputMsg
-                for swap in aKeyList:
-                    msg = list(self.mCurrentDecodedMsgs)
-                    for i in range(len(msg)):
-                        if msg[i] == swap[0].lower():
-                            msg[i] = swap[1].lower()
+    #         elif len(aKeyList) > 2:
+    #             self.mCurrentDecodedMsgs = self.mInputMsg
+    #             for swap in aKeyList:
+    #                 msg = list(self.mCurrentDecodedMsgs)
+    #                 for i in range(len(msg)):
+    #                     if msg[i] == swap[0].lower():
+    #                         msg[i] = swap[1].lower()
                                 
-                        elif msg[i] == swap[0]:
-                            msg[i] = swap[1]
+    #                     elif msg[i] == swap[0]:
+    #                         msg[i] = swap[1]
                                 
-                        elif msg[i] == swap[1].lower():
-                            msg[i] = swap[0].lower()
+    #                     elif msg[i] == swap[1].lower():
+    #                         msg[i] = swap[0].lower()
                                 
-                        elif msg[i] == swap[1]:
-                            msg[i] = swap[0]
+    #                     elif msg[i] == swap[1]:
+    #                         msg[i] = swap[0]
                             
-                    NewMsg = "".join(msg)
-                    self.mCurrentDecodedMsgs = NewMsg
+    #                 NewMsg = "".join(msg)
+    #                 self.mCurrentDecodedMsgs = NewMsg
                     
-                self.mPossibleMsg.append(self.mCurrentDecodedMsgs)
+    #             self.mPossibleMsg.append(self.mCurrentDecodedMsgs)
                 
-                return self.mCurrentDecodedMsgs
-        else:
-            return False
+    #             return self.mCurrentDecodedMsgs
+    #     else:
+    #         return False
     
     def GenerateSwapCombo(self,aLetters):
         Letters = list(aLetters)
@@ -203,7 +202,50 @@ class CMessageCoder:
         IsMsgValid = True if Percentage >= self.mThreshold else False
         return IsMsgValid
     
-    def 
+    def DFS(self):
+        pass
+    
+    def BFS(self):
+        Fringe = [self.mTree.ReturnRoot()]
+        Expanded = []
+        ExpandedKeys = []
+        
+        while Fringe:
+            CurrentNode = Fringe.pop(0)
+            Expanded.append(CurrentNode)
+            ExpandedKeys.append(CurrentNode.GetValue())
+            
+            if self.ValidateDecodedMsgs(CurrentNode.mState):
+                
+                self.mPossibleMsg.append(CurrentNode.mState)
+                
+                self.mFinalOutputMsg = CurrentNode.mState
+                
+                KeyList = CurrentNode.BackTrack()
+                
+                self.mSearchParams.ExpandedNodesSize(Expanded)
+                self.mSearchParams.GetMaxFringeSize(len(Fringe))
+                
+                self.mSearchParams.AddKey(KeyList)
+                self.mSearchParams.GetFinalKey()
+                break
+            
+            else:
+                NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
+                Fringe.extend(NewChildren)
+                
+                self.mSearchParams.ExpandedNodesSize(Expanded)
+                self.mSearchParams.GetMaxFringeSize(len(Fringe))
+                
+                self.mPossibleMsg.append(CurrentNode.mState)
+            
+            
+    
+    def UCS(self):
+        pass
+    
+    def IDS(self):
+        pass
     # def DFS(self):
     #     Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
     #     Expanded = []                           # List store expanded nodes

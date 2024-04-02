@@ -13,7 +13,7 @@ class CNode:
         
         self.mNumChild = 0
         self.mChildNodes = []
-        self.mState = None
+        self.mState = ""
         self.mParent = None
     
     def InsertNode(self,aChildNode):
@@ -24,7 +24,28 @@ class CNode:
     
     def GetValue(self):
         return self.mVal
-
+    
+    def AssignState(self,aNewState):
+        self.mState = aNewState
+        
+    def GetCurrentState(self,aState):
+        msg = list(aState) 
+        for i in range(len(msg)):
+            if msg[i] == self.mVal[0].lower():
+                msg[i] = self.mVal[1].lower()
+                                
+            elif msg[i] == self.mVal[0]:
+                msg[i] = self.mVal[1]
+                                
+            elif msg[i] == self.mVal[1].lower():
+                msg[i] = self.mVal[0].lower()
+                                
+            elif msg[i] == self.mVal[1]:
+                msg[i] = self.mVal[0]
+                    
+            self.mState = "".join(msg)
+                
+    
     def BackTrack(self):
         # Back track to find keys
         ParentNodesStr = []
@@ -60,9 +81,16 @@ class CTree:
         for combo in self.mSwapPatterns:
             NewNode = CNode(combo)
             NewNode.mParent = aParentNode
+            NewNode.mState = aParentNode.mState
+            NewNode.GetCurrentState(aParentNode.mState)
+            
+            # Add child node
             aParentNode.InsertNode(NewNode)
+            
             ChildNodeList.append(NewNode)
+            
             self.mAllNodes.append(NewNode)
+            
 
         #-------------------------------------------------
         return ChildNodeList
