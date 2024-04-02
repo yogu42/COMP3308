@@ -64,7 +64,7 @@ class CTree:
         self.mRoot = CNode("  ")
         self.mRoot.mCost = 0
         self.mRoot.mDepth = 0
-        
+        self.mHeuristics = 0
         self.mSwapPatterns = []
         self.mAllNodes = []
     
@@ -81,7 +81,6 @@ class CTree:
         for combo in self.mSwapPatterns:
             NewNode = CNode(combo)
             NewNode.mParent = aParentNode
-            NewNode.mState = aParentNode.mState
             NewNode.GetCurrentState(aParentNode.mState)
             
             NewNode.mDepth = aParentNode.mDepth + 1
@@ -91,7 +90,7 @@ class CTree:
             
             ChildNodeList.append(NewNode)
             
-            self.mAllNodes.append(NewNode)
+        self.mAllNodes.extend(ChildNodeList)
             
 
         #-------------------------------------------------

@@ -7,7 +7,7 @@ Created on Sat Mar 23 13:40:43 2024
 import itertools
 import string
 from Node import *
-
+import math
 
 class CSearchParams:
     # Public class, all members accessible
@@ -68,6 +68,8 @@ class CMessageCoder:
         self.mFlagBFS = "b"
         self.mFlagUCS = "u"
         self.mFlagIDS = "i"
+        self.mFlagGreedy = "g"
+        self.mFlagAStart = "a"
         
         # I/O messages and dictionary
         # Threshold
@@ -91,8 +93,55 @@ class CMessageCoder:
         self.mNoSolution = "No solution found.\n\n"
         self.mFinalKey = ""
     
-    def Heuristics(self):
-        pass
+    def Heuristics(self,aNode):
+        if self.ValidateDecodedMsgs(aNode.mState):
+            aNode.mHeuristics = 0
+            self.mFinalOutputMsg = aNode.mState
+            self.mPossibleMsg.append(aNode.mState)
+            KeyList = aNode.BackTrack()
+            
+            self.mSearchParams.AddKey(KeyList)
+            self.mSearchParams.GetFinalKey()
+            self.mSearchParams.AddPathCost(KeyList)
+            return 0
+        
+        else:
+            MsgCopy = aNode.mState.upper()
+            #MsgCopy.upper()
+            
+            Text = "ETAONS"
+            FreqCount = {l: 0 for l in Text}  # Initialize FreqCount dictionary
+            
+            for char in MsgCopy:
+                if char in Text:
+                    FreqCount[char] += 1
+            
+            SortedStr = ""
+            while len(FreqCount) != 0:
+               CurrentMaxCount = max(FreqCount.values())
+               
+               # Get all letters that may have the same count
+               MaxLetters = []
+               for key, val in FreqCount.items():
+                   if val == CurrentMaxCount:
+                       MaxLetters.append(key)
+           
+               # Get smallest letter
+               Letter = min(MaxLetters)
+               SortedStr += Letter
+               
+               FreqCount.pop(Letter)
+            # Get wrong places counted
+            MisplaceCount = 0
+            for charText,charSorted in zip(Text,SortedStr):
+                if charSorted != charText:
+                    MisplaceCount += 1 
+            
+            # Calculate heuristic
+            Heuristic = math.ceil(MisplaceCount/2)
+            aNode.mHeuristics = Heuristic
+            
+            return Heuristic
 
     def GetInputMsg(self,aFilename):
         try:
@@ -156,10 +205,9 @@ class CMessageCoder:
             Expanded.append(aNode)
             ExpandedKeys.append(aNode.GetValue())
             
-            
             if self.mSearchParams.mExpandedNodes  >= self.mExpandLimit:
                 return
-
+            
             # IF goal is reached, return
             if self.ValidateDecodedMsgs(aNode.mState):
                 # Record final messages
@@ -184,26 +232,23 @@ class CMessageCoder:
                 NewChildren = self.mTree.GenerateChildNodes(aNode)
                 self.mSearchParams.GetMaxFringeSize(len(Fringe) + len(NewChildren))
                 
+                self.mSearchParams.GetDepth(aNode.mDepth)
+                
+                
                 NewNode = NewChildren.pop(0)
                 
                 # Add children to fringe
                 Fringe.extend(NewChildren)
-                
-                # Record metrics
-                self.mSearchParams.GetDepth(aNode.mDepth)
-                
-                if self.mSearchParams.mDepth > 999:
-                    return
                 
                 self.mSearchParams.ExpandedNodesSize(Expanded)
                 
                 DFSNoLimit(NewNode)
 
         # Run recursive
-        while Fringe:
-            CurrentNode = Fringe.pop(0)
+        #while Fringe:
+        CurrentNode = Fringe.pop(0)
             
-            DFSNoLimit(CurrentNode)
+        DFSNoLimit(CurrentNode)
             
     
     def BFS(self):
@@ -219,7 +264,7 @@ class CMessageCoder:
             
             # Add to exanded
             Expanded.append(CurrentNode)
-            ExpandedKeys.append(CurrentNode.GetValue())
+            #ExpandedKeys.append(CurrentNode.GetValue())
             
             # Get current depth
             self.mSearchParams.GetDepth(CurrentNode.mDepth)
@@ -251,14 +296,89 @@ class CMessageCoder:
                 # Record metrics
                 self.mSearchParams.ExpandedNodesSize(Expanded)
                 self.mSearchParams.GetMaxFringeSize(len(Fringe))
-                
-    
+            
     def UCS(self):
         self.BFS()
     
-    def IDS(self):
-        pass
+    def DLS(self, aNode, aDepthLim):
+        if (aDepthLim * len(self.mSwaps)) > 1000:
+              return False
+        if aDepthLim == 0:
+            return False
+        
+        if self.ValidateDecodedMsgs(aNode.mState):
+            # Record final messages
+            self.mPossibleMsg.append(aNode.mState)
+            self.mFinalOutputMsg = aNode.mState
+    
+            # Get final key combinations
+            KeyList = aNode.BackTrack()
+    
+            # Record metrics
+            self.mSearchParams.GetDepth(aNode.mDepth)
+            self.mSearchParams.GetMaxFringeSize(0)
+            self.mSearchParams.AddKey(KeyList)
+            self.mSearchParams.AddPathCost(KeyList)
+            self.mSearchParams.GetFinalKey()
+            
+            return True
+            
+        else:
+            self.mPossibleMsg.append(aNode.mState)
+    
+            # Generate new children
+            NewChildren = self.mTree.GenerateChildNodes(aNode)
+    
+            for node in NewChildren:
+                if self.DLS(node, aDepthLim - 1):
+                    return True
+    
+        return False
 
+    def IDS(self):
+        # Iterate at each depth 
+        for d in range(self.mSearchParams.mMaxDepth + 1):
+            if self.DLS(self.mTree.ReturnRoot(), d):
+                # Calculate Expanded Size
+                ExpandSize = d * len(self.mSwaps)
+                self.mSearchParams.mExpandedNodes = ExpandSize
+                LastKey = self.mSearchParams.mKey[-1]
+                
+                LastKeyInd = self.mSwaps.index(LastKey)
+                self.mSearchParams.mMaxFringeSize = d * (len(self.mSwaps) - 1) - LastKeyInd
+                
+                return True
+            else:
+                # Gonna have to hard code this
+                self.mSearchParams.mExpandedNodes = 1000
+                self.mSearchParams.mMaxFringeSize = 0
+                self.mSearchParams.mDepth = self.mSearchParams.mDepth
+    
+    def Greedy(self):
+        CurrentNode = self.mTree.ReturnRoot()
+        Fringe = [CurrentNode]
+        Expanded = []
+        while self.Heuristics(CurrentNode) != 0:
+            Expanded.append(CurrentNode)
+            self.mSearchParams.GetDepth(CurrentNode.mDepth)
+            self.mSearchParams.ExpandedNodesSize(Expanded)
+            
+            if len(Expanded) > 1000:
+                break
+            Fringe.pop(0)
+
+            NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
+            H = []
+            for node in NewChildren:
+                self.Heuristics(node)
+                H.append(node.mHeuristics)
+                
+            Fringe.append(NewChildren[H.index(min(H))])
+            
+            self.mSearchParams.GetMaxFringeSize(len(Fringe))
+            
+            CurrentNode = Fringe[0]
+            
 
     def BlindSearch(self,aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
         # Read input file
@@ -286,6 +406,9 @@ class CMessageCoder:
         
         elif aAlgo == self.mFlagIDS:
             self.IDS()
+            
+        elif aAlgo == self.mFlagGreedy:
+            self.Greedy()
         
         FinalOutput = ""
         
@@ -350,13 +473,23 @@ def task4(aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
     m = MsgEncoderObj.BlindSearch(aAlgo, aMsgFile, aDictFile, aThresh, aLetters, aDebug)
 
     return m
+
+def task6(aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
+    
+    MsgEncoderObj = CMessageCoder()
+    m = MsgEncoderObj.BlindSearch(aAlgo, aMsgFile, aDictFile, aThresh, aLetters, aDebug)
+
+    return m
     
 if __name__ == '__main__':
     # Example function calls below, you can add your own to test the task4 function
-    print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
+    #print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
     #print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
     #print(task4('u', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'n'))
-    #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))        
+    #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y')) 
+    print(task6('g', 'secret_msg.txt', 'common_words.txt', 90, 'AENOST', 'n'))
+    
+
             
 
 
