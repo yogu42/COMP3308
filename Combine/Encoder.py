@@ -106,9 +106,11 @@ class CMessageCoder:
             return 0
         
         else:
+            self.mPossibleMsg.append(aNode.mState)
             MsgCopy = aNode.mState.upper()
             #MsgCopy.upper()
             
+        
             Text = "ETAONS"
             FreqCount = {l: 0 for l in Text}  # Initialize FreqCount dictionary
             
@@ -301,8 +303,9 @@ class CMessageCoder:
         self.BFS()
     
     def DLS(self, aNode, aDepthLim):
-        if (aDepthLim * len(self.mSwaps)) > 1000:
+        if (aDepthLim * (-1) * len(self.mSwaps)) > 1000:
               return False
+          
         if aDepthLim == 0:
             return False
         
@@ -330,7 +333,7 @@ class CMessageCoder:
             NewChildren = self.mTree.GenerateChildNodes(aNode)
     
             for node in NewChildren:
-                if self.DLS(node, aDepthLim - 1):
+                if self.DLS(node, aDepthLim-1):
                     return True
     
         return False
@@ -347,12 +350,14 @@ class CMessageCoder:
                 LastKeyInd = self.mSwaps.index(LastKey)
                 self.mSearchParams.mMaxFringeSize = d * (len(self.mSwaps) - 1) - LastKeyInd
                 
-                return True
+                return 
             else:
+                self.DLS(self.mTree.ReturnRoot(), d)
                 # Gonna have to hard code this
                 self.mSearchParams.mExpandedNodes = 1000
                 self.mSearchParams.mMaxFringeSize = 0
                 self.mSearchParams.mDepth = self.mSearchParams.mDepth
+                
     
     def Greedy(self):
         CurrentNode = self.mTree.ReturnRoot()
@@ -360,25 +365,23 @@ class CMessageCoder:
         Expanded = []
         while self.Heuristics(CurrentNode) != 0:
             Expanded.append(CurrentNode)
-            self.mSearchParams.GetDepth(CurrentNode.mDepth)
-            self.mSearchParams.ExpandedNodesSize(Expanded)
-            
             if len(Expanded) > 1000:
                 break
-            Fringe.pop(0)
+            self.mSearchParams.GetDepth(CurrentNode.mDepth)
+            self.mSearchParams.ExpandedNodesSize(Expanded)
 
+            Fringe.pop(0)
+            
             NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
-            H = []
-            for node in NewChildren:
-                self.Heuristics(node)
-                H.append(node.mHeuristics)
-                
-            Fringe.append(NewChildren[H.index(min(H))])
+            H = [self.Heuristics(node) for node in NewChildren]
+            
+            CurrentNode = NewChildren[H.index(min(H))]
+            
+            
+            Fringe.extend(NewChildren)
             
             self.mSearchParams.GetMaxFringeSize(len(Fringe))
-            
-            CurrentNode = Fringe[0]
-            
+
 
     def BlindSearch(self,aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
         # Read input file
@@ -487,6 +490,7 @@ if __name__ == '__main__':
     #print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
     #print(task4('u', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'n'))
     #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y')) 
+    #print(task4('i', 'cabs.txt', 'common_words.txt', 80, 'ADE', 'y')) 
     print(task6('g', 'secret_msg.txt', 'common_words.txt', 90, 'AENOST', 'n'))
     
 
