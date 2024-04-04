@@ -10,6 +10,7 @@ class CNode:
         self.mVal = aValue
         self.mCost= 1
         self.mDepth = 0
+        self.mHeuristics = 0
         
         self.mNumChild = 0
         self.mChildNodes = []
@@ -64,7 +65,7 @@ class CTree:
         self.mRoot = CNode("  ")
         self.mRoot.mCost = 0
         self.mRoot.mDepth = 0
-        self.mHeuristics = 0
+        
         self.mSwapPatterns = []
         self.mAllNodes = []
     

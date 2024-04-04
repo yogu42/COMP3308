@@ -96,13 +96,6 @@ class CMessageCoder:
     def Heuristics(self,aNode):
         if self.ValidateDecodedMsgs(aNode.mState):
             aNode.mHeuristics = 0
-            self.mFinalOutputMsg = aNode.mState
-            self.mPossibleMsg.append(aNode.mState)
-            KeyList = aNode.BackTrack()
-            
-            self.mSearchParams.AddKey(KeyList)
-            self.mSearchParams.GetFinalKey()
-            self.mSearchParams.AddPathCost(KeyList)
             return 0
         
         else:
@@ -199,59 +192,44 @@ class CMessageCoder:
     def DFS(self):
         Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
         Expanded = []                           # List store expanded nodes
-        ExpandedKeys = []                       # List store expanded nodes' value
+        depth = 0
         
-        def DFSNoLimit(aNode):
-            # Add node to expanded
-            # Get metrics
-            Expanded.append(aNode)
-            ExpandedKeys.append(aNode.GetValue())
+        while Fringe and self.mSearchParams.mExpandedNodes < 1000:
+            CurrentNode = Fringe.pop()
             
-            if self.mSearchParams.mExpandedNodes  >= self.mExpandLimit:
-                return
+            Expanded.append(CurrentNode)
+            self.mSearchParams.GetDepth(CurrentNode.mDepth)
+            self.mSearchParams.ExpandedNodesSize(Expanded)
             
-            # IF goal is reached, return
-            if self.ValidateDecodedMsgs(aNode.mState):
-                # Record final messages
+            if self.ValidateDecodedMsgs(CurrentNode.mState):
+            # Record final messages
                 self.mPossibleMsg.append(CurrentNode.mState)
                 self.mFinalOutputMsg = CurrentNode.mState
-                
+                       
                 # Get final key combinations
                 KeyList = CurrentNode.BackTrack()
-                
-                # Record metrics
-                self.mSearchParams.GetDepth(aNode.mDepth)
+                       
+                 # Record metrics
+                self.mSearchParams.GetDepth(depth)
                 self.mSearchParams.ExpandedNodesSize(Expanded)
                 self.mSearchParams.GetMaxFringeSize(len(Fringe))
                 self.mSearchParams.AddKey(KeyList)
                 self.mSearchParams.AddPathCost(KeyList)
                 self.mSearchParams.GetFinalKey()
-                
-                return
+                       
+                break
+            
             else:
-                self.mPossibleMsg.append(aNode.mState)
-                # Generate new children
-                NewChildren = self.mTree.GenerateChildNodes(aNode)
-                self.mSearchParams.GetMaxFringeSize(len(Fringe) + len(NewChildren))
+                self.mPossibleMsg.append(CurrentNode.mState)
                 
-                self.mSearchParams.GetDepth(aNode.mDepth)
-                
-                
-                NewNode = NewChildren.pop(0)
-                
-                # Add children to fringe
+                #Generate new children
+                NewChildren = self.mTree.GenerateChildNodes(CurrentNode)  
+                NewChildren.reverse()
+                depth += 1
                 Fringe.extend(NewChildren)
-                
-                self.mSearchParams.ExpandedNodesSize(Expanded)
-                
-                DFSNoLimit(NewNode)
+                    
+                self.mSearchParams.GetMaxFringeSize(len(Fringe))
 
-        # Run recursive
-        #while Fringe:
-        CurrentNode = Fringe.pop(0)
-            
-        DFSNoLimit(CurrentNode)
-            
     
     def BFS(self):
         Fringe = [self.mTree.ReturnRoot()]
@@ -301,86 +279,105 @@ class CMessageCoder:
             
     def UCS(self):
         self.BFS()
-    
-    def DLS(self, aNode, aDepthLim):
-        if (aDepthLim * (-1) * len(self.mSwaps)) > 1000:
-              return False
-          
-        if aDepthLim == 0:
-            return False
-        
-        if self.ValidateDecodedMsgs(aNode.mState):
-            # Record final messages
-            self.mPossibleMsg.append(aNode.mState)
-            self.mFinalOutputMsg = aNode.mState
-    
-            # Get final key combinations
-            KeyList = aNode.BackTrack()
-    
-            # Record metrics
-            self.mSearchParams.GetDepth(aNode.mDepth)
-            self.mSearchParams.GetMaxFringeSize(0)
-            self.mSearchParams.AddKey(KeyList)
-            self.mSearchParams.AddPathCost(KeyList)
-            self.mSearchParams.GetFinalKey()
-            
-            return True
-            
-        else:
-            self.mPossibleMsg.append(aNode.mState)
-    
-            # Generate new children
-            NewChildren = self.mTree.GenerateChildNodes(aNode)
-    
-            for node in NewChildren:
-                if self.DLS(node, aDepthLim-1):
-                    return True
-    
-        return False
+
 
     def IDS(self):
-        # Iterate at each depth 
-        for d in range(self.mSearchParams.mMaxDepth + 1):
-            if self.DLS(self.mTree.ReturnRoot(), d):
-                # Calculate Expanded Size
-                ExpandSize = d * len(self.mSwaps)
-                self.mSearchParams.mExpandedNodes = ExpandSize
-                LastKey = self.mSearchParams.mKey[-1]
-                
-                LastKeyInd = self.mSwaps.index(LastKey)
-                self.mSearchParams.mMaxFringeSize = d * (len(self.mSwaps) - 1) - LastKeyInd
-                
-                return 
+        Fringe = [self.mTree.ReturnRoot()]      # List store nodes  in fringe
+        Expanded = []                           # List store expanded nodes
+        ExpandedKeys = []
+        depth = 0
+        
+        while self.mSearchParams.mExpandedNodes < 1000:
+
+            CurrentNode = Fringe.pop(0)
+            
+            # add to expand
+            Expanded.append(CurrentNode)
+
+            self.mSearchParams.GetDepth(CurrentNode.mDepth)
+            self.mSearchParams.ExpandedNodesSize(Expanded)
+            
+            if self.ValidateDecodedMsgs(CurrentNode.mState):
+            # Record final messages
+                self.mPossibleMsg.append(CurrentNode.mState)
+                self.mFinalOutputMsg = CurrentNode.mState
+                       
+                # Get final key combinations
+                KeyList = CurrentNode.BackTrack()
+                       
+                  # Record metrics
+                self.mSearchParams.GetDepth(CurrentNode.mDepth)
+                self.mSearchParams.ExpandedNodesSize(Expanded)
+                self.mSearchParams.GetMaxFringeSize(len(Fringe)-1)
+                self.mSearchParams.AddKey(KeyList)
+                self.mSearchParams.AddPathCost(KeyList)
+                self.mSearchParams.GetFinalKey()
+                       
+                break
+            
             else:
-                self.DLS(self.mTree.ReturnRoot(), d)
-                # Gonna have to hard code this
-                self.mSearchParams.mExpandedNodes = 1000
-                self.mSearchParams.mMaxFringeSize = 0
-                self.mSearchParams.mDepth = self.mSearchParams.mDepth
-                
+                self.mPossibleMsg.append(CurrentNode.mState)
+                if CurrentNode.mDepth == depth:
+                    if not CurrentNode.mChildNodes:
+                        self.mTree.GenerateChildNodes(CurrentNode)
+                    
+                    depth += 1
+                   
+                    if not Fringe:
+                        Fringe.append(self.mTree.mRoot)
+                        
+                    else:
+                        Fringe.append(self.mTree.mRoot)
+                        Fringe.append(CurrentNode)
+                        Fringe.extend(CurrentNode.mChildNodes)     
+                    
+                        
+
+                elif CurrentNode.mDepth <= depth:
+                    if not CurrentNode.mChildNodes:
+                        self.mTree.GenerateChildNodes(CurrentNode)
+                    
+                    if not Fringe:
+                        #Fringe.append(self.mTree.mRoot)
+                        Fringe.extend(CurrentNode.mChildNodes)
+
     
     def Greedy(self):
-        CurrentNode = self.mTree.ReturnRoot()
-        Fringe = [CurrentNode]
+        Fringe = [self.mTree.ReturnRoot()]
         Expanded = []
-        while self.Heuristics(CurrentNode) != 0:
+        while Fringe:
+            CurrentNode = Fringe.pop(0)
+            
             Expanded.append(CurrentNode)
             if len(Expanded) > 1000:
                 break
             self.mSearchParams.GetDepth(CurrentNode.mDepth)
             self.mSearchParams.ExpandedNodesSize(Expanded)
 
-            Fringe.pop(0)
+            if self.Heuristics(CurrentNode) == 0:
+                self.mPossibleMsg.append(CurrentNode.mState)
+                self.mFinalOutputMsg = CurrentNode.mState
+                
+                KeyList = CurrentNode.BackTrack()
+                
+                self.mSearchParams.GetMaxFringeSize(len(Fringe))
+                self.mSearchParams.AddKey(KeyList)
+                self.mSearchParams.AddPathCost(KeyList)
+                self.mSearchParams.GetFinalKey()
+                break
             
-            NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
-            H = [self.Heuristics(node) for node in NewChildren]
-            
-            CurrentNode = NewChildren[H.index(min(H))]
-            
-            
-            Fringe.extend(NewChildren)
-            
-            self.mSearchParams.GetMaxFringeSize(len(Fringe))
+            else:
+                NewChildren = self.mTree.GenerateChildNodes(CurrentNode)
+                H = [self.Heuristics(node) for node in NewChildren]
+                
+                MinNode = H.index(min(H))
+                CurrentNode = NewChildren[MinNode]
+                NewChildren.pop(MinNode)
+                
+                Fringe.append(CurrentNode)
+                #Fringe.extend(NewChildren)
+                
+                self.mSearchParams.GetMaxFringeSize(len(Fringe))
 
 
     def BlindSearch(self,aAlgo, aMsgFile, aDictFile, aThresh,aLetters, aDebug):
@@ -490,7 +487,9 @@ if __name__ == '__main__':
     #print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
     #print(task4('u', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'n'))
     #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y')) 
-    #print(task4('i', 'cabs.txt', 'common_words.txt', 80, 'ADE', 'y')) 
+    #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ADE', 'n')) 
+   
+
     print(task6('g', 'secret_msg.txt', 'common_words.txt', 90, 'AENOST', 'n'))
     
 
