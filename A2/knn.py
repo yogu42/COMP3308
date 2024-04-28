@@ -42,4 +42,4 @@ def classify_nn(training_filename, testing_filename, k):
       output.append(o)
     
     return output
-classify_nn("pima.csv", "test.csv", 2)
+print(classify_nn("pima.csv", "test.csv", 2))

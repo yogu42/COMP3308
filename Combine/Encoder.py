@@ -286,13 +286,17 @@ class CMessageCoder:
         Expanded = []                           # List store expanded nodes
         ExpandedKeys = []
         depth = 0
+        FringeKeys = []
         
         while self.mSearchParams.mExpandedNodes < 1000:
-
+            
+            for i in Fringe:
+                FringeKeys.append(i.GetValue())
             CurrentNode = Fringe.pop(0)
             
             # add to expand
             Expanded.append(CurrentNode)
+            ExpandedKeys.append(CurrentNode.GetValue())
 
             self.mSearchParams.GetDepth(CurrentNode.mDepth)
             self.mSearchParams.ExpandedNodesSize(Expanded)
@@ -318,29 +322,32 @@ class CMessageCoder:
             else:
                 self.mPossibleMsg.append(CurrentNode.mState)
                 if CurrentNode.mDepth == depth:
-                    if not CurrentNode.mChildNodes:
-                        self.mTree.GenerateChildNodes(CurrentNode)
                     
-                    depth += 1
-                   
                     if not Fringe:
-                        Fringe.append(self.mTree.mRoot)
+                        Fringe.append(self.mTree.mRoot)  
+                        
+                        depth += 1
                         
                     else:
                         Fringe.append(self.mTree.mRoot)
                         Fringe.append(CurrentNode)
-                        Fringe.extend(CurrentNode.mChildNodes)     
+                        
+                        if not CurrentNode.mChildNodes:
+                            self.mTree.GenerateChildNodes(CurrentNode)
+                            Fringe.extend(CurrentNode.mChildNodes)     
                     
                         
 
-                elif CurrentNode.mDepth <= depth:
+                elif CurrentNode.mDepth < depth:
                     if not CurrentNode.mChildNodes:
                         self.mTree.GenerateChildNodes(CurrentNode)
-                    
-                    if not Fringe:
-                        #Fringe.append(self.mTree.mRoot)
                         Fringe.extend(CurrentNode.mChildNodes)
-
+                        
+                    # if not Fringe:
+                    #     #Fringe.append(self.mTree.mRoot)
+                    #     Fringe.extend(CurrentNode.mChildNodes)
+            
+            print(FringeKeys)
     
     def Greedy(self):
         Fringe = [self.mTree.ReturnRoot()]
@@ -486,11 +493,11 @@ if __name__ == '__main__':
     #print(task4('d', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
     #print(task4('b', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y'))
     #print(task4('u', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'n'))
-    #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y')) 
+    print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ABC', 'y')) 
     #print(task4('i', 'cabs.txt', 'common_words.txt', 100, 'ADE', 'n')) 
    
 
-    print(task6('g', 'secret_msg.txt', 'common_words.txt', 90, 'AENOST', 'n'))
+    #print(task6('g', 'secret_msg.txt', 'common_words.txt', 90, 'AENOST', 'n'))
     
 
             
