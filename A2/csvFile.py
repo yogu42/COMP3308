@@ -33,16 +33,18 @@ def Convert2Data(input_data):
     return conv
         
 
-class DataExtractor:
+class DataProcessor:
     def __init__(self):
         """Class extracts and stores data from csv file"""
         self.file_name = None
         self.data_extracted = False
+        self.data_processed = False
+        
         self.header_index = {}
         self.raw_data = []
         self.processed_data = {}
-
-    
+        self.normalise_data = {}
+        
     def ReadCsv(self,csv_dir):
         assert isinstance(csv_dir, str), "Input directory must be a string"
         
@@ -75,28 +77,38 @@ class DataExtractor:
             
             self.data_extracted = True
             print("CSV file successfully read")
-            
+
+        
         except FileNotFoundError:
             print("CSV file raed failed")
+        
+        
+        def NormaliseData(self,file_name):
+            assert self.data_extracted is True, "data have not been extracted"
+            
+            with open(file_name, 'w', newline='') as file:
+                writer = csv.writer(file)
+                
+                # Write header
+                writer.writerow(self.processed_data.keys())
+                
+                # Transpose data to write by row
+                rows = zip(*self.processed_data.values())
+                
+                # Write rows
+                writer.writerows(rows)
+                
+            print("Data successfully written to CSV file:", file_name)
+            
         
         def Output2CSV(self,file_name):
             """
             Class method transfer all processed data back into csv file
         
             """
-            pass
+            pass 
             
 
-Extractor = DataExtractor()
+Extractor = DataProcessor()
 Extractor.ReadCsv("occupancy_org.csv")
 
-
-
-
-    
-    
-    
-    
-    
-    
-    
